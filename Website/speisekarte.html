@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speisekarte</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="startseite.html">Startseite</a>
+        <a href="speisekarte.html">Speisekarte</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
+        <a href="impressum.html">Impressum</a>
+    </nav>
+
+    <main class="speisekarte">
+        <h1>Speisekarte</h1>
+        <div class="speisen-bereich">
+            <h2>Speisen</h2>
+            <div class="speisen-liste">
+                <div class="gericht">
+                    <div class="gericht-zeile">
+                        <h3 class="gericht-name">Hotdog</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>Mit Frankfurter</p>
+                    <img src="Bilder/images.png" alt="Hotdog" class="gericht-bild" hidden>
+                </div>
+
+                <div class="gericht">
+                    <div class="gericht-zeile">
+                        <h3 class="gericht-name">Käsekrainer</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>Mit Semmel oder Pommes</p>
+                    <img src="Bilder/images.png" alt="Käsekrainer" class="gericht-bild" hidden>
+                </div>
+
+                <div class="gericht">
+                    <div class="gericht-zeile">
+                        <h3 class="gericht-name">Toast</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>Mit Schinken und Käse</p>
+                    <img src="Bilder/images.png" alt="Toast" class="gericht-bild" hidden>
+                </div>
+            </div>
+        </div>
+
+        <div class="getraenke-bereich">
+            <h2>Getränke</h2>
+            <div class="getraenke-liste">
+                <div class="getraenk">
+                    <div class="getraenk-zeile">
+                        <h3>Mineralwasser</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>0,5 Liter</p>
+                </div>
+
+                <div class="getraenk">
+                    <div class="getraenk-zeile">
+                        <h3>Spritzer</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>0,25 Liter</p>
+                </div>
+
+                <div class="getraenk">
+                    <div class="getraenk-zeile">
+                        <h3>Bier</h3>
+                        <span class="preis">0,00 €</span>
+                    </div>
+                    <p>0,25 Liter</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bewertungsbereich">
+            <h2>Bewerte uns</h2>
+            <form id="bewertungsformular">
+                <div class="bewertungsfeld">
+                    <label for="bewertungsname">Name:</label>
+                    <input
+                        type="text"
+                        id="bewertungsname"
+                        name="name"
+                        placeholder="Name"
+                        required>
+                </div>
+
+                <div class="bewertungsfeld">
+                    <p>Bewertung:</p>
+                    <label>
+                        <input type="radio" name="sterne" value="5" required>
+                        ★★★★★
+                    </label>
+
+                    <label>
+                        <input type="radio" name="sterne" value="4">
+                        ★★★★
+                    </label>
+
+                    <label>
+                        <input type="radio" name="sterne" value="3">
+                        ★★★
+                    </label>
+
+                    <label>
+                        <input type="radio" name="sterne" value="2">
+                        ★★
+                    </label>
+
+                    <label>
+                        <input type="radio" name="sterne" value="1">
+                        ★
+                    </label>
+                </div>
+
+                <div class="bewertungsfeld">
+                    <label for="bewertungskommentar">Kommentar:</label>
+                    <textarea
+                        id="bewertungskommentar"
+                        name="kommentar"
+                        rows="5"
+                        placeholder="Wie hat es dir bei uns gefallen?"
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit">Bewertung abschicken</button>
+            </form>
+
+            <div class="bewertungsanzeige">
+                <h2>Bewertungen unserer Gäste</h2>
+
+                <div id="bewertungsliste">
+                    <p>Noch keine Bewertungen vorhanden.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="bild-popup" hidden>
+        <button
+            type="button"
+            id="popup-schließen"
+            aria-label="Bild schließen">
+            &times;
+        </button>
+        <img id="popup-bild" src="" alt="">
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -3,9 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Veranstaltungen</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+    <nav class="navbar">
+        <a href="startseite.html">Startseite</a>
+        <a href="speisekarte.html">Speisekarte</a>
+        <a href="veranstaltungen.html">Veranstaltungen</a>
+        <a href="impressum.html">Impressum</a>
+    </nav>
+    <header>
+        <h1>Veranstaltungen & Events</h1>
+
+        <p>
+            Entdecke unsere kommenden Veranstaltungen
+            und Highlights.
+        </p>
+    </header>
+
+    <main class="veranstaltung">
+
+        <!-- Adminbereich nach login -->
+
+        <div id="admin-bereich" hidden>
+            <button type="button" id="logout-button">Abmelden</button>
+            <h2>Veranstaltung erstellen</h2>
+            <form id="veranstaltungsformular">
+                <div>
+                    <label for="veranstaltungstitel">
+                        Titel der Veranstaltung:
+                    </label>
+                    <input
+                        type="text"
+                        id="veranstaltungstitel"
+                        name="titel"
+                        placeholder="z. B. Großes Dartturnier"
+                        required>
+                </div>
+
+                <div>
+                    <label for="veranstaltungsdatum">
+                        Datum:
+                    </label>
+                    <input
+                        type="date"
+                        id="veranstaltungsdatum"
+                        name="datum"
+                        required>
+                </div>
+
+                <div>
+                    <label for="veranstaltungsuhrzeit">
+                        Beginn:
+                    </label>
+                    <input
+                        type="time"
+                        id="veranstaltungsuhrzeit"
+                        name="uhrzeit"
+                        required>
+                </div>
+
+                <div>
+                    <label for="veranstaltung-beschreibung">
+                        Beschreibung:
+                    </label>
+                    <textarea
+                        id="veranstaltung-beschreibung"
+                        name="beschreibung"
+                        rows="6"
+                        placeholder="Deine Veranstaltung ..."
+                        required>
+                    </textarea>
+                </div>
+
+                <div>
+                    <label for="veranstaltungsbild">
+                        Veranstaltungsbild:
+                    </label>
+                    <input
+                        type="file"
+                        id="veranstaltung-bild"
+                        name="bild"
+                        accept="image/*">
+                </div>
+
+                <div>
+                    <button type="submit">
+                        Veranstaltung veröffentlichen
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Veranstaltungen -->
+
+        <div id="veranstaltungen">
+            <h2>Unsere Veranstaltungen</h2>
+
+            <!-- Beispielveranstaltung -->
+
+            <article class="veranstaltung" data-id="bsp-dartturnier">
+                <h3>🎯 Großes Dartturnier</h3>
+                <img
+                    src="bilder/images.png"
+                    alt="Dartturnier im Restaurant">
+
+                <p>
+                    <strong>Datum:</strong>
+                    <time datetime="2026-11-14">
+                        14.11.2026
+                    </time>
+                </p>
+
+                <p>
+                    <strong>Beginn:</strong>
+                    19:00 Uhr
+                </p>
+
+                <p>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat eveniet aut quia incidunt exercitationem fugiat cum pariatur iste laudantium! Ut hic unde minima eligendi, error blanditiis! Accusamus earum voluptatem quod?
+                </p>
+
+                <!-- Funktionen für Admin -->
+
+                <div class="veranstaltung-admin-aktionen" hidden>
+                    <button
+                        type="button"
+                        class="veranstaltung-bearbeiten">
+                        Bearbeiten
+                    </button>
+
+                    <button
+                        type="button"
+                        class="veranstaltung-loeschen">
+                        Löschen
+                    </button>
+                </div>
+            </article>
+        </div>
+
+        <!-- Newsletter -->
+
+        <div id="newsletter">
+            <h2>Unser Newsletter</h2>
+            <p>
+                Erfahre mehr über kommende Veranstaltungen und Highlights.
+            </p>
+
+            <form id="newsletter-formular" action="#" method="post">
+                <div>
+                    <label for="newsletter-email">
+                        Deine E-Mail-Adresse:
+                    </label>
+                    <input
+                        type="email"
+                        id="newsletter-email"
+                        name="email"
+                        placeholder="name@beispiel.at"
+                        autocomplete="email"
+                        required>
+                </div>
+
+                <div>
+                    <input
+                        type="checkbox"
+                        id="newsletter-einwilligung"
+                        name="einwilligung"
+                        required>
+
+                    <label for="newsletter-einwilligung">
+                        Ich möchte den Newsletter erhalten und stimme
+                        der Verarbeitung meiner E-Mail-Adresse zu.
+                        Die Datenschutzhinweise habe ich gelesen.
+                    </label>
+                </div>
+
+                <button type="submit">
+                    Newsletter abonnieren
+                </button>
+            </form>
+        </div>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>

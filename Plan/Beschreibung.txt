@@ -1,31 +1,30 @@
 1. Seite
-Willkommenseite/Über uns mit Logo, Überschrift, Bild vom Stand, kurzer Beschreibung, den Öffnungszeiten und Implementierung von Google-Maps zur Anzeige des Standorts
+Willkommenseite/Über uns mit Logo, Überschrift, Bild vom Stand, kurzer Beschreibung, den Öffnungszeiten und Implementierung von Open Street Map zur Anzeige des Standorts
 
 2.Seite
 Menü
 
 3.Seite
-Veranstaltungen mit verstecktem Admin-Bereich, um Veranstaltungen posten zu können (Login erforderlich)
+Veranstaltungen mit verstecktem Admin-Bereich, um Veranstaltungen posten zu können (Login erforderlich) mit JSON und Mongo DB
 
 4. Seite
 Impressum
 
 Erweiterungsideen, da vermutlich zu wenig:
-1. bei Klick auf ein Gericht erscheint ein Bild davon
-2. Umfragen bzw. Anonyme Teilnahme ähnlich FB
-3. Bewertungen auf der 3.(?) Seite
-4. Newsletter (KD werden über geplante Veranstaltungen/bei Absage auch per Mail benachrichtigt)
+1. bei Klick auf ein Gericht erscheint ein Bild davon (dazu)
+3. Bewertungen auf der 2. Seite (dazu)
+4. Newsletter (KD werden über geplante Veranstaltungen/bei Absage auch per Mail benachrichtigt) (dazu)
 5. Bestellungen/Tischreservierungen platzieren
 
 Plan:
 2.Termin
-HTML & JS
+HTML & JS, Login-Formular, nodeJS routing zu allen Seiten/ statischen Inhalten, Route zum Adymin-Bereich, alles mit Mongo DB einrichten mit funktioniernden Login-Daten
 
 3.Termin
 Adminbereich Login + Postings
 
 4.Termin
-CSS, Adminbereich Login + Postings (falls noch nicht fertig) + Erweiterung (falls erforderlich)
+CSS, Adminbereich Login + Postings (falls noch nicht fertig) + Erweiterung (falls erforderlich) (PWA draus machen)
 
 5. Termin
 letzte Korrekturen/Anpassungen

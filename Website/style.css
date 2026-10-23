@@ -1,0 +1,31 @@
+body {
+    background-color: rgb(60, 60, 60);
+    color: white;
+}
+
+.navbar {
+    background-color: black;
+}
+
+.navbar a {
+    color: white;
+}
+
+#bild-popup[hidden] {
+    display: none !important;
+}
+
+#bild-popup:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#popup-bild {
+    max-width: 90%;
+    max-height: 90vh;
+}

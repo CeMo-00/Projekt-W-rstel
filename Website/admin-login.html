@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin-Login</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <main class="veranstaltung">
+        <h1>Admin-Login</h1>
+
+        <form id="login-formular">
+            <div>
+                <label for="admin-username">Benutzername:</label>
+                <input type="text" id="admin-username"
+                    name="username" autocomplete="username" required>
+            </div>
+
+            <div>
+                <label for="admin-password">Passwort:</label>
+                <input type="password" id="admin-password"
+                    name="password" autocomplete="current-password" required>
+            </div>
+
+            <button type="submit">Einloggen</button>
+        </form>
+
+        <p id="login-meldung" role="status"></p>
+    </main>
+
+    <script src="/script.js"></script>
+</body>
+</html>
