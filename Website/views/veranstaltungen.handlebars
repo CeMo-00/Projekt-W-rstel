@@ -1,0 +1,211 @@
+<h1>Veranstaltungen &amp; Events</h1>
+<p>Entdecke unsere kommenden Veranstaltungen und Neuigkeiten.</p>
+
+{{#if erfolg}}
+    <div class="alert alert-success">{{erfolg}}</div>
+{{/if}}
+
+{{#if fehler}}
+    <div class="alert alert-danger">{{fehler}}</div>
+{{/if}}
+
+{{#if adminEingeloggt}}
+<div id="admin-bereich" class="card mb-4">
+    <div class="card-body">
+        <h2>Neue Veranstaltung oder Neuigkeit erstellen</h2>
+        <form action="/veranstaltungen/erstellen" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Titel</label>
+                <div class="emoji-feld emoji-titel">
+                    <button type="button" class="emoji-button" aria-label="Emoji auswählen">😀</button>
+                    <input type="text" name="titel" class="form-control emoji-eingabe" required>
+                    <div class="emoji-picker-popup" hidden>
+                        <emoji-picker locale="de"></emoji-picker>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Datum</label>
+                <input type="date" name="datum" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Beginn (optional)</label>
+                <input type="time" name="uhrzeit" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Beschreibung</label>
+                <div class="emoji-feld emoji-beschreibung">
+                    <button type="button" class="emoji-button" aria-label="Emoji auswählen">😀</button>
+                    <textarea name="beschreibung" class="form-control" rows="3" required></textarea>
+                    <div class="emoji-picker-popup" hidden>
+                        <emoji-picker locale="de"></emoji-picker>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Bild (optional)</label>
+                <input type="file" name="bild" class="form-control" accept="image/*">
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                Veranstaltung erstellen
+            </button>
+        </form>
+
+        <button id="logout-button" class="btn btn-secondary mt-3">
+            Abmelden
+        </button>
+    </div>
+</div>
+{{/if}}
+
+<div id="veranstaltungsliste" data-admin="{{adminEingeloggt}}">
+    {{#each veranstaltungen}}
+        <div class="col-12 mb-4 veranstaltung-eintrag" data-id="{{_id}}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3>{{titel}}</h3>
+
+                    <p><strong>Datum:</strong> {{datumAnzeige}}</p>
+
+                    {{#if uhrzeit}}
+                        <p><strong>Beginn:</strong> {{uhrzeit}}</p>
+                    {{/if}}
+
+                    <p>{{beschreibung}}</p>
+                </div>
+
+                {{#if bild}}
+                    <img src="/bilder/{{bild}}" class="card-img-bottom" alt="{{titel}}">
+                {{/if}}
+
+                {{#if ../adminEingeloggt}}
+                <div class="card-body veranstaltung-admin-aktionen">
+                    <button type="button" class="btn btn-outline-light bearbeiten-button">
+                        ✏️ Bearbeiten
+                    </button>
+
+                    <form action="/veranstaltungen/{{_id}}/loeschen"
+                          method="POST"
+                          class="d-inline"
+                          onsubmit="return confirm('Möchtest du diese Veranstaltung wirklich löschen?');">
+                        <button type="submit" class="btn btn-danger">
+                            🗑️ Veranstaltung löschen
+                        </button>
+                    </form>
+
+                    <div class="veranstaltung-bearbeiten mt-3" hidden>
+                        <hr>
+                        <h4>Veranstaltung bearbeiten</h4>
+                        <form action="/veranstaltungen/{{_id}}/bearbeiten"
+                              method="POST"
+                              enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label">Titel</label>
+                                <input type="text"
+                                       name="titel"
+                                       class="form-control"
+                                       value="{{titel}}"
+                                       required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Datum</label>
+                                <input type="date"
+                                       name="datum"
+                                       class="form-control"
+                                       value="{{datum}}"
+                                       required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Beginn (optional)</label>
+                                <input type="time"
+                                       name="uhrzeit"
+                                       class="form-control"
+                                       value="{{uhrzeit}}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Beschreibung</label>
+                                <textarea name="beschreibung"
+                                          class="form-control"
+                                          rows="3"
+                                          required>{{beschreibung}}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Neues Bild (optional)</label>
+                                <input type="file"
+                                       name="bild"
+                                       class="form-control"
+                                       accept="image/*">
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                💾 Änderung speichern
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    {{else}}
+        <p id="keine-veranstaltungen">Aktuell sind keine Veranstaltungen vorhanden.</p>
+    {{/each}}
+</div>
+
+<button
+    type="button"
+    id="mehr-veranstaltungen"
+    class="btn btn-secondary mt-3"
+    {{#unless weitereVeranstaltungenVorhanden}}hidden{{/unless}}>
+    Mehr laden
+</button>
+
+<section id="newsletter" class="card mt-5">
+    <div class="card-body">
+        <h2>Unser Newsletter</h2>
+        <p>Erfahre mehr über kommende Veranstaltungen und Highlights.</p>
+
+        <form id="newsletter-formular">
+            <div class="mb-3">
+                <label for="newsletter-email" class="form-label">E-Mail-Adresse</label>
+                <input
+                    id="newsletter-email"
+                    name="email"
+                    type="email"
+                    class="form-control"
+                    placeholder="name@beispiel.at"
+                    autocomplete="email"
+                    maxlength="254"
+                    required>
+            </div>
+
+            <div class="form-check mb-3">
+                <input
+                    id="newsletter-einwilligung"
+                    name="einwilligung"
+                    type="checkbox"
+                    class="form-check-input"
+                    required>
+                <label for="newsletter-einwilligung" class="form-check-label">
+                    Ich möchte den Newsletter erhalten und stimme der Verarbeitung meiner E-Mail-Adresse zu. Die Datenschutzhinweise habe ich gelesen.
+                </label>
+            </div>
+
+            <p id="newsletter-meldung" role="status" aria-live="polite"></p>
+
+            <button type="submit" id="newsletter-anmelden" class="btn btn-primary">
+                Anmelden
+            </button>
+        </form>
+    </div>
+</section>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>

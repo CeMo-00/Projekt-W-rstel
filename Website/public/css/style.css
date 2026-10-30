@@ -1,0 +1,192 @@
+body {
+    background-color: rgb(60, 60, 60);
+    color: white;
+}
+
+.navbar {
+    background-color: black;
+}
+
+.navbar a {
+    color: white;
+}
+
+.speisekarte {
+    background-color: transparent;
+    color: white;
+}
+
+.speisekarte h1,
+.speisekarte h2,
+.speisekarte h3,
+.speisekarte p {
+    color: white;
+}
+
+.card,
+.card-body {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: white !important;
+}
+
+#bild-popup[hidden] {
+    display: none !important;
+}
+
+#bild-popup:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#popup-bild {
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.emoji-feld {
+    position: relative;
+}
+
+.emoji-eingabe {
+    padding-left: 3rem;
+}
+
+.emoji-button {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    border: none;
+    background: transparent;
+    font-size: 1.35rem;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.emoji-beschreibung .emoji-button {
+    top: auto;
+    bottom: 5px;
+    transform: none;
+}
+
+.emoji-beschreibung textarea {
+    padding-left: 0.75rem;
+    padding-bottom: 0.375rem;
+}
+
+.emoji-picker-popup {
+    position: absolute;
+    z-index: 1000;
+    left: 0;
+    width: 320px;
+    max-width: 90vw;
+}
+
+.emoji-titel .emoji-picker-popup {
+    top: 100%;
+}
+
+.emoji-beschreibung .emoji-picker-popup {
+    bottom: 100%;
+}
+
+.emoji-picker-popup emoji-picker {
+    width: 100%;
+    height: 350px;
+    --border-radius: 8px;
+    --num-columns: 8;
+}
+
+.bewertungsbereich {
+    color: white;
+    max-width: 800px;
+}
+
+.bewertungsbereich h2,
+.bewertungsbereich p,
+.bewertungsbereich label {
+    color: white;
+}
+
+.bewertungsfeld input[type="text"],
+.bewertungsfeld textarea {
+    background-color: white;
+    color: black;
+}
+
+.sterne-auswahl {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sterne-auswahl input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.sterne-auswahl label {
+    color: #777777;
+    font-size: 2.2rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.sterne-auswahl label.ausgewaehlt {
+    color: #ffc107;
+}
+
+.sterne-auswahl label:hover {
+    transform: scale(1.15);
+}
+
+.sterne-auswahl input:focus-visible + label {
+    outline: 2px solid white;
+    outline-offset: 3px;
+}
+
+.bewertungsanzeige {
+    display: block;
+    width: 100%;
+}
+
+#bewertungsliste {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.bewertung-eintrag {
+    display: block;
+    width: 100%;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.bewertung-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bewertung-sterne {
+    color: #ffc107;
+    font-size: 1.2rem;
+}
+
+.bewertung-datum {
+    color: #cccccc;
+}

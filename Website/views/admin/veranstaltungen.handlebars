@@ -1,0 +1,55 @@
+<h1>Veranstaltungen verwalten</h1>
+
+<form action="/admin/veranstaltungen" method="POST" enctype="multipart/form-data">
+
+    <h2>Neue Veranstaltung erstellen</h2>
+    <div class="mb-3">
+        <label for="titel">Titel:</label>
+        <input type="text" name="titel" id="titel" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="datum">Datum:</label>
+        <input type="date" name="datum" id="datum" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="uhrzeit">Uhrzeit:</label>
+        <input type="time" name="uhrzeit" id="uhrzeit" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="beschreibung">Beschreibung:</label>
+        <textarea name="beschreibung" id="beschreibung" class="form-control" required></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="bild">Bild:</label>
+        <input type="file" name="bild" id="bild" class="form-control" accept="image/*">
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Veranstaltung veröffentlichen
+    </button>
+
+</form>
+
+<hr>
+
+<h2>Bestehende Veranstaltungen</h2>
+{{#each veranstaltungen}}
+    <div class="mb-4">
+        <h3>{{titel}}</h3>
+        <p>{{datum}} – {{uhrzeit}} Uhr</p>
+        <p>{{beschreibung}}</p>
+
+        <a href="/admin/veranstaltungen/bearbeiten/{{_id}}">
+            Bearbeiten
+        </a>
+
+        <form action="/admin/veranstaltungen/loeschen/{{_id}}" method="POST">
+            <button type="submit" class="btn btn-danger">
+                Löschen
+            </button>
+        </form>
+    </div>
+
+{{else}}
+    <p>Noch keine Veranstaltungen vorhanden.</p>
+{{/each}}
