@@ -1,33 +1,155 @@
+document.querySelectorAll(".varianten-formular").forEach(formular => {
+    const liste = formular.querySelector(".varianten-liste");
+    const hiddenFeld = formular.querySelector(".preise-hidden");
+    const hinzufuegenButton = formular.querySelector(".variante-hinzufuegen");
+
+    if (!liste || !hiddenFeld || !hinzufuegenButton) return;
+
+    function varianteHinzufuegen(bezeichnung = "", preis = "") {
+        const zeile = document.createElement("div");
+        zeile.className = "row g-2 mb-2 variante-zeile";
+
+        const bezeichnungSpalte = document.createElement("div");
+        bezeichnungSpalte.className = "col-7";
+
+        const bezeichnungFeld = document.createElement("input");
+        bezeichnungFeld.type = "text";
+        bezeichnungFeld.className = "form-control variante-bezeichnung";
+        bezeichnungFeld.placeholder = "z. B. 0,25 l oder Pommes";
+        bezeichnungFeld.value = bezeichnung;
+
+        bezeichnungSpalte.appendChild(bezeichnungFeld);
+
+        const preisSpalte = document.createElement("div");
+        preisSpalte.className = "col-3";
+
+        const preisFeld = document.createElement("input");
+        preisFeld.type = "text";
+        preisFeld.className = "form-control variante-preis";
+        preisFeld.placeholder = "Preis";
+        preisFeld.value = preis;
+        preisFeld.required = true;
+
+        preisSpalte.appendChild(preisFeld);
+
+        const buttonSpalte = document.createElement("div");
+        buttonSpalte.className = "col-2";
+
+        const entfernenButton = document.createElement("button");
+        entfernenButton.type = "button";
+        entfernenButton.className = "btn btn-outline-danger w-100";
+        entfernenButton.textContent = "×";
+        entfernenButton.title = "Variante entfernen";
+
+        entfernenButton.addEventListener("click", () => {
+            if (liste.querySelectorAll(".variante-zeile").length > 1) {
+                zeile.remove();
+            } else {
+                bezeichnungFeld.value = "";
+                preisFeld.value = "";
+            }
+        });
+
+        buttonSpalte.appendChild(entfernenButton);
+
+        zeile.append(bezeichnungSpalte, preisSpalte, buttonSpalte);
+        liste.appendChild(zeile);
+    }
+
+    const bisherigePreise = hiddenFeld.value;
+    if (bisherigePreise) {
+        bisherigePreise.split(";").forEach(eintrag => {
+            const teile = eintrag.split("=");
+            if (teile.length === 2) {
+                varianteHinzufuegen(
+                    teile[0].trim(),
+                    teile[1].trim()
+                );
+            }
+        });
+    }
+
+    if (liste.children.length === 0) {
+        varianteHinzufuegen();
+    }
+
+    hinzufuegenButton.addEventListener("click", () => {
+        varianteHinzufuegen();
+    });
+
+    formular.addEventListener("submit", event => {
+        const zeilen = liste.querySelectorAll(".variante-zeile");
+        const ergebnis = [];
+
+        zeilen.forEach(zeile => {
+            const bezeichnung = zeile.querySelector(".variante-bezeichnung").value.trim();
+            const preis = zeile.querySelector(".variante-preis").value.trim();
+            if (preis) {
+                ergebnis.push(bezeichnung + "=" + preis);
+            }
+        });
+
+        if (ergebnis.length === 0) {
+            event.preventDefault();
+            alert("Bitte gib mindestens einen Preis ein.");
+            return;
+        }
+
+        hiddenFeld.value = ergebnis.join("; ");
+    });
+});
+
 const bildPopup = document.getElementById("bild-popup");
 const popupBild = document.getElementById("popup-bild");
 const popupSchliessen = document.getElementById("popup-schließen");
 
-if (bildPopup && popupBild) {
-    document.querySelectorAll(".gericht").forEach(gericht => {
-        const name = gericht.querySelector(".gericht-name");
-        const bild = gericht.querySelector(".gericht-bild");
+function bildPopupOeffnen(name) {
+    if (!bildPopup || !popupBild) return;
 
-        if (!name || !bild) return;
+    const bildAdresse = name.dataset.bild;
+    if (!bildAdresse) return;
+
+    popupBild.src = bildAdresse;
+    popupBild.alt = name.dataset.name || name.textContent.trim();
+
+    bildPopup.hidden = false;
+}
+
+function bildPopupSchliessen() {
+    if (!bildPopup || !popupBild) return;
+
+    bildPopup.hidden = true;
+    popupBild.src = "";
+}
+
+if (bildPopup && popupBild) {
+    document.querySelectorAll(".speise-name-mit-bild").forEach(name => {
+        name.tabIndex = 0;
+
         name.addEventListener("click", () => {
-            popupBild.src = bild.src;
-            popupBild.alt = bild.alt;
-            bildPopup.hidden = false;
+            bildPopupOeffnen(name);
+        });
+
+        name.addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                bildPopupOeffnen(name);
+            }
         });
     });
 
-    function popupSchliessenFunktion() {
-        bildPopup.hidden = true;
-        popupBild.src = "";
-    }
-
-    popupSchliessen?.addEventListener("click", popupSchliessenFunktion);
+    popupSchliessen?.addEventListener("click", bildPopupSchliessen);
 
     bildPopup.addEventListener("click", event => {
-        if (event.target === bildPopup) popupSchliessenFunktion();
+        if (event.target === bildPopup) {
+            bildPopupSchliessen();
+        }
     });
 
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape") popupSchliessenFunktion();
+        if (event.key === "Escape") {
+            bildPopupSchliessen();
+        }
     });
 }
 
@@ -38,7 +160,12 @@ const logoutButton = document.getElementById("logout-button");
 
 function loginStatusAnzeigen(eingeloggt) {
     if (adminBereich) adminBereich.hidden = !eingeloggt;
+
     document.querySelectorAll(".veranstaltung-admin-aktionen").forEach(element => {
+        element.hidden = !eingeloggt;
+    });
+
+    document.querySelectorAll(".speise-admin-aktionen").forEach(element => {
         element.hidden = !eingeloggt;
     });
 }
@@ -47,6 +174,7 @@ async function loginStatusCheck() {
     try {
         const antwort = await fetch("/api/login-status");
         const daten = await antwort.json();
+
         loginStatusAnzeigen(daten.loggedIn);
     } catch (fehler) {
         console.error("Login-Status konnte nicht geladen werden:", fehler);
@@ -56,8 +184,10 @@ async function loginStatusCheck() {
 if (loginForm) {
     loginForm.addEventListener("submit", async event => {
         event.preventDefault();
+
         const username = document.getElementById("admin-username").value;
         const password = document.getElementById("admin-password").value;
+
         try {
             const antwort = await fetch("/api/login", {
                 method: "POST",
@@ -85,7 +215,9 @@ if (logoutButton) {
     logoutButton.addEventListener("click", async () => {
         try {
             const antwort = await fetch("/api/logout", { method: "POST" });
+
             if (!antwort.ok) throw new Error("Logout fehlgeschlagen");
+
             window.location.href = "/veranstaltungen";
         } catch (fehler) {
             console.error("Abmelden fehlgeschlagen:", fehler);
@@ -115,6 +247,7 @@ document.querySelectorAll(".emoji-feld").forEach(feldBereich => {
 
     button.addEventListener("click", () => {
         const warGeoeffnet = !pickerPopup.hidden;
+
         document.querySelectorAll(".emoji-picker-popup").forEach(popup => {
             popup.hidden = true;
         });
@@ -124,10 +257,13 @@ document.querySelectorAll(".emoji-feld").forEach(feldBereich => {
 
     picker.addEventListener("emoji-click", event => {
         const emoji = event.detail.unicode;
+
         eingabe.focus();
         eingabe.setRangeText(emoji, cursorStart, cursorEnde, "end");
+
         cursorStart += emoji.length;
         cursorEnde = cursorStart;
+
         pickerPopup.hidden = true;
         eingabe.dispatchEvent(new Event("input", { bubbles: true }));
     });
@@ -140,12 +276,33 @@ document.addEventListener("click", event => {
         });
     }
 
-    const bearbeitenButton = event.target.closest(".bearbeiten-button");
-    if (bearbeitenButton) {
-        const aktionen = bearbeitenButton.closest(".veranstaltung-admin-aktionen");
+    const veranstaltungButton = event.target.closest(".bearbeiten-button");
+
+    if (veranstaltungButton) {
+        const aktionen = veranstaltungButton.closest(".veranstaltung-admin-aktionen");
         const bearbeitenBereich = aktionen?.querySelector(".veranstaltung-bearbeiten");
+
         if (bearbeitenBereich) {
             bearbeitenBereich.hidden = !bearbeitenBereich.hidden;
+        }
+    }
+
+    const speiseButton = event.target.closest(".speise-bearbeiten-button");
+
+    if (speiseButton) {
+        const aktionen = speiseButton.closest(".speise-admin-aktionen");
+        const bearbeitenBereich = aktionen?.querySelector(".speise-bearbeiten");
+
+        if (bearbeitenBereich) {
+            bearbeitenBereich.hidden = !bearbeitenBereich.hidden;
+        }
+    }
+});
+
+document.addEventListener("submit", event => {
+    if (event.target.classList.contains("loeschen-formular")) {
+        if (!confirm("Möchtest du diesen Eintrag wirklich löschen?")) {
+            event.preventDefault();
         }
     }
 });
@@ -185,6 +342,7 @@ function veranstaltungAnzeigen(veranstaltung) {
     const datumLabel = document.createElement("strong");
     datumLabel.textContent = "Datum: ";
     datum.append(datumLabel, document.createTextNode(veranstaltung.datumAnzeige));
+
     inhalt.append(titel, datum);
 
     if (veranstaltung.uhrzeit) {
@@ -198,6 +356,7 @@ function veranstaltungAnzeigen(veranstaltung) {
     const beschreibung = document.createElement("p");
     beschreibung.textContent = veranstaltung.beschreibung;
     inhalt.appendChild(beschreibung);
+
     if (veranstaltungsliste.dataset.admin === "true") {
         const aktionen = document.createElement("div");
         aktionen.className = "veranstaltung-admin-aktionen mt-3";
@@ -210,18 +369,13 @@ function veranstaltungAnzeigen(veranstaltung) {
         const loeschenForm = document.createElement("form");
         loeschenForm.action = `/veranstaltungen/${veranstaltung._id}/loeschen`;
         loeschenForm.method = "POST";
-        loeschenForm.className = "d-inline";
-
-        loeschenForm.addEventListener("submit", event => {
-            if (!confirm("Möchtest du diese Veranstaltung wirklich löschen?")) {
-                event.preventDefault();
-            }
-        });
+        loeschenForm.className = "d-inline loeschen-formular";
 
         const loeschenButton = document.createElement("button");
         loeschenButton.type = "submit";
         loeschenButton.className = "btn btn-danger";
         loeschenButton.textContent = "🗑️ Veranstaltung löschen";
+
         loeschenForm.appendChild(loeschenButton);
 
         const bearbeitenBereich = document.createElement("div");
@@ -275,6 +429,7 @@ function veranstaltungAnzeigen(veranstaltung) {
         beschreibungEingabe.rows = 3;
         beschreibungEingabe.required = true;
         beschreibungEingabe.value = veranstaltung.beschreibung || "";
+
         beschreibungGruppe.append(beschreibungLabel, beschreibungEingabe);
 
         const bildGruppe = document.createElement("div");
@@ -289,6 +444,7 @@ function veranstaltungAnzeigen(veranstaltung) {
         bildEingabe.name = "bild";
         bildEingabe.className = "form-control";
         bildEingabe.accept = "image/*";
+
         bildGruppe.append(bildLabel, bildEingabe);
 
         const speichernButton = document.createElement("button");
@@ -319,11 +475,11 @@ function veranstaltungAnzeigen(veranstaltung) {
 
 async function veranstaltungenLaden() {
     if (!veranstaltungsliste || veranstaltungenWerdenGeladen) return;
+
     veranstaltungenWerdenGeladen = true;
 
-    if (mehrVeranstaltungenButton) {
-        mehrVeranstaltungenButton.disabled = true;
-    }
+    if (mehrVeranstaltungenButton) mehrVeranstaltungenButton.disabled = true;
+
     try {
         const antwort = await fetch(`/api/veranstaltungen?skip=${veranstaltungenGeladen}`);
         const daten = await antwort.json();
@@ -331,6 +487,7 @@ async function veranstaltungenLaden() {
         if (!antwort.ok) {
             throw new Error(daten.message || "Veranstaltungen konnten nicht geladen werden.");
         }
+
         daten.veranstaltungen.forEach(veranstaltungAnzeigen);
         veranstaltungenGeladen += daten.veranstaltungen.length;
 
@@ -339,6 +496,7 @@ async function veranstaltungenLaden() {
         if (keineVeranstaltungen && veranstaltungenGeladen > 0) {
             keineVeranstaltungen.remove();
         }
+
         if (mehrVeranstaltungenButton) {
             mehrVeranstaltungenButton.hidden = !daten.weitereVorhanden;
         }
@@ -348,9 +506,7 @@ async function veranstaltungenLaden() {
     } finally {
         veranstaltungenWerdenGeladen = false;
 
-        if (mehrVeranstaltungenButton) {
-            mehrVeranstaltungenButton.disabled = false;
-        }
+        if (mehrVeranstaltungenButton) mehrVeranstaltungenButton.disabled = false;
     }
 }
 
@@ -372,6 +528,7 @@ const adminEingeloggt = bewertungsliste?.dataset.admin === "true";
 
 function sterneAktualisieren() {
     if (!sterneAuswahl) return;
+
     const sterne = sterneAuswahl.querySelectorAll("input[type='radio']");
     const ausgewaehlt = Number(
         sterneAuswahl.querySelector("input[type='radio']:checked")?.value || 0
@@ -379,6 +536,7 @@ function sterneAktualisieren() {
 
     sterne.forEach(input => {
         const label = sterneAuswahl.querySelector(`label[for="${input.id}"]`);
+
         if (label) {
             label.classList.toggle("ausgewaehlt", Number(input.value) <= ausgewaehlt);
         }
@@ -389,6 +547,7 @@ if (sterneAuswahl) {
     sterneAuswahl.querySelectorAll("input[type='radio']").forEach(input => {
         input.addEventListener("change", sterneAktualisieren);
     });
+
     sterneAktualisieren();
 }
 
@@ -406,6 +565,7 @@ function bewertungAnzeigen(bewertung) {
     const sterne = document.createElement("span");
     sterne.className = "bewertung-sterne";
     sterne.textContent = "★".repeat(bewertung.sterne) + "☆".repeat(5 - bewertung.sterne);
+
     kopf.append(name, sterne);
 
     const kommentar = document.createElement("p");
@@ -414,6 +574,7 @@ function bewertungAnzeigen(bewertung) {
     const datum = document.createElement("small");
     datum.className = "bewertung-datum";
     datum.textContent = new Date(bewertung.erstelltAm).toLocaleDateString("de-AT");
+
     eintrag.append(kopf, kommentar, datum);
 
     if (adminEingeloggt) {
@@ -421,8 +582,10 @@ function bewertungAnzeigen(bewertung) {
         loeschenButton.type = "button";
         loeschenButton.className = "btn btn-danger btn-sm mt-2";
         loeschenButton.textContent = "Löschen";
+
         loeschenButton.addEventListener("click", async () => {
             if (!confirm("Möchtest du diese Bewertung wirklich löschen?")) return;
+
             loeschenButton.disabled = true;
 
             try {
@@ -431,6 +594,7 @@ function bewertungAnzeigen(bewertung) {
                 });
 
                 const daten = await antwort.json();
+
                 if (!antwort.ok) {
                     throw new Error(daten.message || "Bewertung konnte nicht gelöscht werden.");
                 }
@@ -455,21 +619,24 @@ function bewertungAnzeigen(bewertung) {
 
 async function bewertungenLaden(neuLaden = false) {
     if (!bewertungsliste || bewertungenWerdenGeladen) return;
+
     bewertungenWerdenGeladen = true;
 
-    if (mehrBewertungenButton) {
-        mehrBewertungenButton.disabled = true;
-    }
+    if (mehrBewertungenButton) mehrBewertungenButton.disabled = true;
+
     if (neuLaden) {
         bewertungenGeladen = 0;
         bewertungsliste.innerHTML = "";
     }
+
     try {
         const antwort = await fetch(`/api/bewertungen?skip=${bewertungenGeladen}`);
         const daten = await antwort.json();
+
         if (!antwort.ok) {
             throw new Error(daten.message || "Bewertungen konnten nicht geladen werden.");
         }
+
         if (daten.bewertungen.length === 0 && bewertungenGeladen === 0) {
             bewertungsliste.textContent = "Noch keine Bewertungen vorhanden.";
         } else {
@@ -490,9 +657,7 @@ async function bewertungenLaden(neuLaden = false) {
     } finally {
         bewertungenWerdenGeladen = false;
 
-        if (mehrBewertungenButton) {
-            mehrBewertungenButton.disabled = false;
-        }
+        if (mehrBewertungenButton) mehrBewertungenButton.disabled = false;
     }
 }
 
@@ -506,6 +671,7 @@ if (bewertungsformular) {
         event.preventDefault();
 
         if (!bewertungAbsenden || !bewertungMeldung) return;
+
         bewertungAbsenden.disabled = true;
         bewertungMeldung.textContent = "Bewertung wird veröffentlicht ...";
 
@@ -525,6 +691,7 @@ if (bewertungsformular) {
             });
 
             const daten = await antwort.json();
+
             if (!antwort.ok) {
                 throw new Error(daten.message || "Bewertung konnte nicht veröffentlicht werden.");
             }
@@ -555,11 +722,12 @@ if (newsletterFormular) {
 
         const email = emailFeld.value.trim();
         const einwilligung = einwilligungFeld.checked;
-        const emailMuster = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-        if (!emailMuster.test(email)) {
+
+        if (!emailFeld.checkValidity()) {
             newsletterMeldung.textContent = "Bitte gib eine gültige E-Mail-Adresse ein.";
             return;
         }
+
         if (!einwilligung) {
             newsletterMeldung.textContent = "Bitte stimme der Verarbeitung deiner E-Mail-Adresse zu.";
             return;
@@ -576,6 +744,7 @@ if (newsletterFormular) {
             });
 
             const daten = await antwort.json();
+
             if (!antwort.ok) {
                 throw new Error(daten.message || "Die Anmeldung ist fehlgeschlagen.");
             }
@@ -587,5 +756,47 @@ if (newsletterFormular) {
         } finally {
             newsletterAnmelden.disabled = false;
         }
+    });
+}
+
+const kartenElement = document.getElementById("map");
+
+if (kartenElement) {
+    const map = L.map("map");
+
+    map.setView([47.67721, 15.94569], 16);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>'
+    }).addTo(map);
+
+    L.marker([47.67721, 15.94569])
+        .addTo(map)
+        .bindPopup("Würstelbaron – Bahnhofstraße 22")
+        .openPopup();
+}
+
+const kategorie = document.getElementById("artikel-kategorie");
+const bildFeld = document.getElementById("bild-feld");
+
+if (kategorie && bildFeld) {
+    function bildFeldAnzeigen() {
+        bildFeld.hidden = kategorie.value !== "Speise";
+    }
+
+    kategorie.addEventListener("change", bildFeldAnzeigen);
+    bildFeldAnzeigen();
+}
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/service-worker.js")
+            .then(() => {
+                console.log("Service Worker wurde registriert");
+            })
+            .catch(fehler => {
+                console.log("Service Worker Error: ", fehler);
+            });
     });
 }

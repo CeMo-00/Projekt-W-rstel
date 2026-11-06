@@ -1,0 +1,17 @@
+
+{
+    "name": "Würstelbaron",
+    "short_name": "Würstelbaron",
+    "description": "Website des Würstelbarons",
+    "theme_color": "#212529",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/bilder/wuerstelicon.jpg",
+            "sizes": "301x301",
+            "type": "image/jpeg"
+        }
+    ]
+}

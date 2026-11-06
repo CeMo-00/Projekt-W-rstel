@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -32,10 +31,26 @@ const upload = multer({
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
 app.engine("handlebars", engine({
     defaultLayout: "main",
     helpers: {
-        eq: (a, b) => a === b
+        eq: (a, b) => a === b,
+
+        preisFormatieren: preis => {
+            const zahl = Number(preis);
+
+            if (!Number.isFinite(zahl)) return "0,00 €";
+
+            return zahl.toFixed(2).replace(".", ",") + " €";
+        },
+
+        preiseText: preise => {
+            if (!preise) return "";
+            return preise.map(p => `${p.menge}=${String(p.preis).replace(".", ",")}`).join("; ");
+        },
+
+        allergeneText: allergene => allergene ? allergene.join(", ") : ""
     }
 }));
 
@@ -43,10 +58,7 @@ app.set("view engine", "handlebars");
 app.set("views", path.join(__dirname, "views"));
 
 function adminAuth(req, res, next) {
-    if (!req.session.admin) {
-        return res.redirect("/admin-login");
-    }
-
+    if (!req.session.admin) return res.redirect("/admin-login");
     next();
 }
 
@@ -56,40 +68,135 @@ function adminApiAuth(req, res, next) {
             message: "Du musst als Admin eingeloggt sein."
         });
     }
-
     next();
 }
 
 function datumFormatieren(datum) {
     if (!datum) return "";
-    if (datum instanceof Date) {
-        if (Number.isNaN(datum.getTime())) return "";
-        const tag = String(datum.getUTCDate()).padStart(2, "0");
-        const monat = String(datum.getUTCMonth() + 1).padStart(2, "0");
-        const jahr = datum.getUTCFullYear();
-        return `${tag}.${monat}.${jahr}`;
-    }
 
     const datumText = String(datum).trim();
-    const isoDatum = datumText.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (isoDatum) {
-        const [, jahr, monat, tag] = isoDatum;
-        return `${tag.padStart(2, "0")}.${monat.padStart(2, "0")}.${jahr}`;
+
+    if (datumText.includes("-")) {
+        const teile = datumText.split("-");
+        if (teile.length === 3) {
+            return `${teile[2].padStart(2, "0")}.${teile[1].padStart(2, "0")}.${teile[0]}`;
+        }
     }
 
-    const deutschesDatum = datumText.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-    if (deutschesDatum) {
-        const [, tag, monat, jahr] = deutschesDatum;
-        return `${tag.padStart(2, "0")}.${monat.padStart(2, "0")}.${jahr}`;
-    }
     return datumText;
 }
+
+function preiseAuslesen(text) {
+    const preise = String(text || "").split(";");
+    const ergebnis = [];
+
+    preise.forEach(eintrag => {
+        const teile = eintrag.split("=");
+
+        if (teile.length === 2) {
+            const menge = teile[0].trim();
+            const preis = Number(teile[1].trim().replace(",", "."));
+
+            if (Number.isFinite(preis) && preis >= 0) {
+                ergebnis.push({ menge, preis });
+            }
+        }
+    });
+
+    return ergebnis;
+}
+
+function allergeneAuslesen(text) {
+    return String(text || "")
+        .split(",")
+        .map(a => a.trim().toUpperCase())
+        .filter(a => a);
+}
+
+const speisekarteStartdaten = [
+    { name: "Frankfurter Hotdog", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 6.50 }], allergene: ["A", "G", "L", "M"] },
+    { name: "Debreziner Hotdog", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 7.00 }], allergene: ["A", "G", "M"] },
+    { name: "Käsekrainer Hotdog", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 7.50 }], allergene: ["A", "G", "M"] },
+    { name: "Frankfurter mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 5.00 }, { menge: "Pommes", preis: 6.50 }], allergene: ["A", "G", "L", "M"] },
+    { name: "Debreziner mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 6.00 }, { menge: "Pommes", preis: 7.50 }], allergene: ["A", "G", "M"] },
+    { name: "Käsekrainer mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 7.00 }, { menge: "Pommes", preis: 8.50 }], allergene: ["A", "G", "M"] },
+    { name: "Grillwurst mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 6.50 }, { menge: "Pommes", preis: 8.00 }], allergene: ["A", "G", "M"] },
+    { name: "Currywurst mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 7.50 }, { menge: "Pommes", preis: 9.00 }], allergene: ["A", "L", "M", "G", "O"] },
+    { name: "Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 3.80 }], allergene: ["A", "O"] },
+    { name: "Schinken-Käse Toast", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 3.80 }], allergene: ["A", "G", "F", "L", "M"] },
+    { name: "Käse Toast", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 3.30 }], allergene: ["A", "G"] },
+    { name: "Leberkässemmel", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 3.00 }], allergene: ["A", "G", "L", "M"] },
+    { name: "Käsleberkässemmel", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 3.00 }], allergene: ["A", "G", "L", "M"] },
+    { name: "Bosna", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "", preis: 9.50 }], allergene: ["A", "G", "L", "M"] },
+    { name: "Burenwurst mit Gebäck / mit Pommes", kategorie: "Speise", unterkategorie: "Speisen", mengenUndPreise: [{ menge: "Gebäck", preis: 6.00 }, { menge: "Pommes", preis: 7.50 }], allergene: ["A", "G", "L", "M"] },
+
+    { name: "Coca Cola", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Cola Zero", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Frucade", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Almdudler", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Red Bull", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 3.40 }] },
+    { name: "Fanta", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,33 l", preis: 3.20 }] },
+    { name: "Cola", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,33 l", preis: 3.20 }] },
+    { name: "Eistee Zitrone/Pfirsich", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,33 l", preis: 3.20 }] },
+    { name: "Cappy", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Alkoholfrei gespritzt", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 1.90 }, { menge: "0,5 l", preis: 3.20 }] },
+    { name: "Soda Zitrone", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.10 }, { menge: "0,5 l", preis: 3.50 }] },
+    { name: "Cola Zitrone", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 2.20 }, { menge: "0,5 l", preis: 3.70 }] },
+    { name: "Mineral", kategorie: "Getränk", unterkategorie: "Alkoholfrei", mengenUndPreise: [{ menge: "0,25 l", preis: 1.50 }, { menge: "0,5 l", preis: 2.50 }] },
+
+    { name: "Puntigamer Bier", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,5 l", preis: 3.80 }] },
+    { name: "Puntigamer Dose (To Go)", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,5 l", preis: 3.80 }] },
+    { name: "Gösser Alkoholfrei", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,5 l", preis: 3.80 }] },
+    { name: "Gösser Radler", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,5 l", preis: 3.80 }] },
+    { name: "Spritzer Weiß / Spritzer Rot", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,25 l", preis: 3.10 }, { menge: "0,5 l", preis: 5.10 }] },
+    { name: "Teichwasser", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,25 l", preis: 2.60 }, { menge: "0,5 l", preis: 3.60 }] },
+    { name: "Tiroler", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,25 l", preis: 3.20 }, { menge: "0,5 l", preis: 5.20 }] },
+    { name: "Weißwein / Rotwein", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "1/8 l", preis: 2.80 }] },
+    { name: "Croyff", kategorie: "Getränk", unterkategorie: "Alkoholisch", mengenUndPreise: [{ menge: "0,25 l", preis: 3.10 }, { menge: "0,5 l", preis: 5.20 }] },
+
+    { name: "Vodka Bull", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.50 }] },
+    { name: "Flying Hirsch", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 4.00 }] },
+    { name: "Bacardi Cola", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.80 }] },
+    { name: "Cola Rum", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.30 }] },
+    { name: "Bacardi Frucade", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.80 }] },
+    { name: "Klopfer", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "1 Stk.", preis: 2.50 }] },
+    { name: "Marille", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "2 cl", preis: 2.50 }] },
+    { name: "Vodka Soda", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.30 }] },
+    { name: "Malibu Orange", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.50 }] },
+    { name: "Malibu Milch", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "0,25 l", preis: 3.50 }] },
+    { name: "Jägermeister", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "1 Stk.", preis: 3.00 }] },
+    { name: "Berliner Luft", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "1 Stk.", preis: 3.00 }] },
+    { name: "Zwetschke", kategorie: "Getränk", unterkategorie: "Spirituosen", mengenUndPreise: [{ menge: "2 cl", preis: 2.50 }] },
+
+    { name: "Verlängerter", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 3.00 }] },
+    { name: "Espresso", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 2.80 }] },
+    { name: "Heiße Schokolade", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 3.80 }] },
+    { name: "Tee (Früchtetee/Schwarztee)", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 2.50 }] },
+    { name: "Cappuccino", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 3.50 }] },
+    { name: "Cafe Latte", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 3.90 }] },
+    { name: "Tee mit Rum", kategorie: "Getränk", unterkategorie: "Kaffee & Tee", mengenUndPreise: [{ menge: "", preis: 3.20 }] }
+];
 
 async function startServer() {
     const client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
 
     const db = client.db();
+
+    const speisenSammlung = db.collection("speisen");
+    for (const artikel of speisekarteStartdaten) {
+        const vorhanden = await speisenSammlung.findOne({ name: artikel.name });
+
+        if (!vorhanden) {
+            await speisenSammlung.insertOne({
+                ...artikel,
+                beschreibung: "",
+                bild: "",
+                preis: artikel.mengenUndPreise[0].preis
+            });
+        }
+    }
+
     const smtpKonfiguriert = Boolean(
         process.env.SMTP_HOST &&
         process.env.SMTP_PORT &&
@@ -129,10 +236,50 @@ async function startServer() {
     });
 
     app.get("/speisekarte", async (req, res) => {
-        const speisen = await db.collection("speisen").find().toArray();
+        const speisen = await speisenSammlung
+            .find()
+            .sort({ kategorie: 1, unterkategorie: 1, name: 1 })
+            .toArray();
+
+        speisen.forEach(artikel => {
+            if (!artikel.mengenUndPreise) {
+                artikel.mengenUndPreise = [{
+                    menge: "",
+                    preis: artikel.preis || 0
+                }];
+            }
+        });
+
+        const kategorien = ["Alkoholfrei", "Alkoholisch", "Spirituosen", "Kaffee & Tee"];
+
+        const getraenke = speisen.filter(artikel =>
+            artikel.kategorie === "Getränk"
+        );
+
+        const getraenkeGruppen = kategorien
+            .map(name => ({
+                name,
+                artikel: getraenke.filter(artikel =>
+                    String(artikel.unterkategorie || "").trim() === name
+                )
+            }))
+            .filter(gruppe => gruppe.artikel.length > 0);
+
+        const weitereGetraenke = getraenke.filter(artikel =>
+            !kategorien.includes(String(artikel.unterkategorie || "").trim())
+        );
+
+        if (weitereGetraenke.length > 0) {
+            getraenkeGruppen.push({
+                name: "Weitere Getränke",
+                artikel: weitereGetraenke
+            });
+        }
+
         res.render("speisekarte", {
             title: "Speisekarte",
             speisen,
+            getraenkeGruppen,
             adminEingeloggt: !!req.session.admin
         });
     });
@@ -147,6 +294,7 @@ async function startServer() {
 
     app.get("/veranstaltungen", async (req, res) => {
         const limit = 5;
+
         const veranstaltungen = await db.collection("veranstaltungen")
             .find()
             .sort({ datum: -1, _id: -1 })
@@ -155,14 +303,15 @@ async function startServer() {
 
         const weitereVorhanden = veranstaltungen.length > limit;
         veranstaltungen.length = Math.min(veranstaltungen.length, limit);
-        const veranstaltungenMitFormatiertemDatum = veranstaltungen.map(v => ({
+
+        const veranstaltungenMitDatum = veranstaltungen.map(v => ({
             ...v,
             datumAnzeige: datumFormatieren(v.datum)
         }));
 
         res.render("veranstaltungen", {
             title: "Veranstaltungen",
-            veranstaltungen: veranstaltungenMitFormatiertemDatum,
+            veranstaltungen: veranstaltungenMitDatum,
             adminEingeloggt: !!req.session.admin,
             weitereVeranstaltungenVorhanden: weitereVorhanden,
             erfolg: req.query.erfolg,
@@ -184,26 +333,24 @@ async function startServer() {
 
             const weitereVorhanden = veranstaltungen.length > limit;
             veranstaltungen.length = Math.min(veranstaltungen.length, limit);
-            const veranstaltungenMitFormatiertemDatum = veranstaltungen.map(v => ({
-                ...v,
-                datumAnzeige: datumFormatieren(v.datum)
-            }));
 
             res.json({
-                veranstaltungen: veranstaltungenMitFormatiertemDatum,
+                veranstaltungen: veranstaltungen.map(v => ({
+                    ...v,
+                    datumAnzeige: datumFormatieren(v.datum)
+                })),
                 weitereVorhanden
             });
         } catch (fehler) {
             console.error("Veranstaltungen konnten nicht geladen werden:", fehler);
-            res.status(500).json({
-                message: "Veranstaltungen konnten nicht geladen werden."
-            });
+            res.status(500).json({ message: "Veranstaltungen konnten nicht geladen werden." });
         }
     });
 
     app.post("/veranstaltungen/erstellen", adminAuth, upload.single("bild"), async (req, res) => {
         const { titel, datum, beschreibung } = req.body;
         const uhrzeit = String(req.body.uhrzeit || "").trim();
+
         if (!titel?.trim() || !datum || !beschreibung?.trim()) {
             return res.redirect("/veranstaltungen?fehler=Bitte+alle+Pflichtfelder+ausfüllen");
         }
@@ -220,12 +367,11 @@ async function startServer() {
     });
 
     app.post("/veranstaltungen/:id/bearbeiten", adminAuth, upload.single("bild"), async (req, res) => {
-        if (!ObjectId.isValid(req.params.id)) {
-            return res.sendStatus(400);
-        }
+        if (!ObjectId.isValid(req.params.id)) return res.sendStatus(400);
 
         const { titel, datum, beschreibung } = req.body;
         const uhrzeit = String(req.body.uhrzeit || "").trim();
+
         if (!titel?.trim() || !datum || !beschreibung?.trim()) {
             return res.redirect("/veranstaltungen?fehler=Bitte+alle+Pflichtfelder+ausfüllen");
         }
@@ -237,9 +383,7 @@ async function startServer() {
             beschreibung: beschreibung.trim()
         };
 
-        if (req.file) {
-            aenderungen.bild = req.file.filename;
-        }
+        if (req.file) aenderungen.bild = req.file.filename;
 
         await db.collection("veranstaltungen").updateOne(
             { _id: new ObjectId(req.params.id) },
@@ -250,15 +394,89 @@ async function startServer() {
     });
 
     app.post("/veranstaltungen/:id/loeschen", adminAuth, async (req, res) => {
-        if (!ObjectId.isValid(req.params.id)) {
-            return res.sendStatus(400);
-        }
+        if (!ObjectId.isValid(req.params.id)) return res.sendStatus(400);
 
         await db.collection("veranstaltungen").deleteOne({
             _id: new ObjectId(req.params.id)
         });
 
         res.redirect("/veranstaltungen?erfolg=Veranstaltung+gelöscht");
+    });
+
+    app.post("/speisekarte/erstellen", adminAuth, upload.single("bild"), async (req, res) => {
+        const name = String(req.body.name || "").trim();
+        const kategorie = req.body.kategorie;
+        const unterkategorie = String(req.body.unterkategorie || "").trim();
+        const beschreibung = String(req.body.beschreibung || "").trim();
+        const mengenUndPreise = preiseAuslesen(req.body.preise);
+        const allergene = allergeneAuslesen(req.body.allergene);
+
+        if (!name || !["Speise", "Getränk"].includes(kategorie) || mengenUndPreise.length === 0) {
+            return res.redirect("/speisekarte");
+        }
+
+        await speisenSammlung.insertOne({
+            name,
+            kategorie,
+            unterkategorie,
+            beschreibung,
+            mengenUndPreise,
+            allergene,
+            preis: mengenUndPreise[0].preis,
+            bild: kategorie === "Speise" ? req.file?.filename || "" : ""
+        });
+
+        res.redirect("/speisekarte");
+    });
+
+    app.post("/speisekarte/:id/bearbeiten", adminAuth, upload.single("bild"), async (req, res) => {
+        if (!ObjectId.isValid(req.params.id)) return res.sendStatus(400);
+
+        const name = String(req.body.name || "").trim();
+        const kategorie = req.body.kategorie;
+        const unterkategorie = String(req.body.unterkategorie || "").trim();
+        const beschreibung = String(req.body.beschreibung || "").trim();
+        const mengenUndPreise = preiseAuslesen(req.body.preise);
+        const allergene = allergeneAuslesen(req.body.allergene);
+
+        if (!name || !["Speise", "Getränk"].includes(kategorie) || mengenUndPreise.length === 0) {
+            return res.redirect("/speisekarte");
+        }
+
+        const aenderungen = {
+            name,
+            kategorie,
+            unterkategorie,
+            beschreibung,
+            mengenUndPreise,
+            allergene,
+            preis: mengenUndPreise[0].preis
+        };
+
+        if (kategorie === "Speise" && req.file) {
+            aenderungen.bild = req.file.filename;
+        }
+
+        if (kategorie === "Getränk") {
+            aenderungen.bild = "";
+        }
+
+        await speisenSammlung.updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: aenderungen }
+        );
+
+        res.redirect("/speisekarte");
+    });
+
+    app.post("/speisekarte/:id/loeschen", adminAuth, async (req, res) => {
+        if (!ObjectId.isValid(req.params.id)) return res.sendStatus(400);
+
+        await speisenSammlung.deleteOne({
+            _id: new ObjectId(req.params.id)
+        });
+
+        res.redirect("/speisekarte");
     });
 
     app.get("/api/bewertungen", async (req, res) => {
@@ -275,15 +493,11 @@ async function startServer() {
 
             const weitereVorhanden = bewertungen.length > limit;
             bewertungen.length = Math.min(bewertungen.length, limit);
-            res.json({
-                bewertungen,
-                weitereVorhanden
-            });
+
+            res.json({ bewertungen, weitereVorhanden });
         } catch (fehler) {
             console.error("Bewertungen konnten nicht geladen werden:", fehler);
-            res.status(500).json({
-                message: "Bewertungen konnten nicht geladen werden."
-            });
+            res.status(500).json({ message: "Bewertungen konnten nicht geladen werden." });
         }
     });
 
@@ -292,20 +506,17 @@ async function startServer() {
             const name = String(req.body.name || "").trim();
             const kommentar = String(req.body.kommentar || "").trim();
             const sterne = Number(req.body.sterne);
+
             if (!name || name.length > 50) {
-                return res.status(400).json({
-                    message: "Bitte gib einen Namen mit maximal 50 Zeichen ein."
-                });
+                return res.status(400).json({ message: "Bitte gib einen Namen mit maximal 50 Zeichen ein." });
             }
+
             if (!kommentar || kommentar.length > 1000) {
-                return res.status(400).json({
-                    message: "Bitte gib einen Kommentar mit maximal 1000 Zeichen ein."
-                });
+                return res.status(400).json({ message: "Bitte gib einen Kommentar mit maximal 1000 Zeichen ein." });
             }
+
             if (!Number.isInteger(sterne) || sterne < 1 || sterne > 5) {
-                return res.status(400).json({
-                    message: "Bitte wähle eine Bewertung zwischen 1 und 5 Sternen."
-                });
+                return res.status(400).json({ message: "Bitte wähle eine Bewertung zwischen 1 und 5 Sternen." });
             }
 
             await db.collection("bewertungen").insertOne({
@@ -321,18 +532,14 @@ async function startServer() {
             });
         } catch (fehler) {
             console.error("Bewertung konnte nicht gespeichert werden:", fehler);
-            res.status(500).json({
-                message: "Deine Bewertung konnte leider nicht gespeichert werden."
-            });
+            res.status(500).json({ message: "Deine Bewertung konnte leider nicht gespeichert werden." });
         }
     });
 
     app.delete("/api/bewertungen/:id", adminApiAuth, async (req, res) => {
         try {
             if (!ObjectId.isValid(req.params.id)) {
-                return res.status(400).json({
-                    message: "Ungültige Bewertungs-ID."
-                });
+                return res.status(400).json({ message: "Ungültige Bewertungs-ID." });
             }
 
             const ergebnis = await db.collection("bewertungen").deleteOne({
@@ -340,20 +547,13 @@ async function startServer() {
             });
 
             if (ergebnis.deletedCount === 0) {
-                return res.status(404).json({
-                    message: "Bewertung wurde nicht gefunden."
-                });
+                return res.status(404).json({ message: "Bewertung wurde nicht gefunden." });
             }
 
-            res.json({
-                success: true,
-                message: "Bewertung wurde gelöscht."
-            });
+            res.json({ success: true, message: "Bewertung wurde gelöscht." });
         } catch (fehler) {
             console.error("Bewertung konnte nicht gelöscht werden:", fehler);
-            res.status(500).json({
-                message: "Bewertung konnte nicht gelöscht werden."
-            });
+            res.status(500).json({ message: "Bewertung konnte nicht gelöscht werden." });
         }
     });
 
@@ -361,18 +561,26 @@ async function startServer() {
         try {
             const email = String(req.body.email || "").trim().toLowerCase();
             const einwilligung = req.body.einwilligung === true;
+            const emailTeile = email.split("@");
+            const domain = emailTeile[1] || "";
 
-            const emailMuster = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-            if (!email || email.length > 254 || !emailMuster.test(email)) {
-                return res.status(400).json({
-                    message: "Bitte gib eine gültige E-Mail-Adresse ein."
-                });
+            if (
+                !email ||
+                email.length > 254 ||
+                emailTeile.length !== 2 ||
+                !emailTeile[0] ||
+                !domain.includes(".") ||
+                domain.startsWith(".") ||
+                domain.endsWith(".") ||
+                email.includes(" ")
+            ) {
+                return res.status(400).json({ message: "Bitte gib eine gültige E-Mail-Adresse ein." });
             }
+
             if (!einwilligung) {
-                return res.status(400).json({
-                    message: "Bitte stimme der Verarbeitung deiner E-Mail-Adresse zu."
-                });
+                return res.status(400).json({ message: "Bitte stimme der Verarbeitung deiner E-Mail-Adresse zu." });
             }
+
             if (!mailTransporter) {
                 return res.status(503).json({
                     message: "Der Newsletter ist momentan nicht verfügbar. Bitte versuche es später erneut."
@@ -381,6 +589,7 @@ async function startServer() {
 
             const newsletter = db.collection("newsletter");
             const bereitsAngemeldet = await newsletter.findOne({ email });
+
             if (bereitsAngemeldet) {
                 return res.status(409).json({
                     message: "Diese E-Mail-Adresse ist bereits für den Newsletter angemeldet."
@@ -394,12 +603,12 @@ async function startServer() {
             });
 
             try {
-                const info = await mailTransporter.sendMail({
+                await mailTransporter.sendMail({
                     from: process.env.SMTP_FROM,
                     to: email,
                     subject: "Deine Anmeldung zum Würstelbaron-Newsletter",
                     text: `Hallo!
-                    
+
 Vielen Dank für deine Anmeldung zum Würstelbaron-Newsletter.
 Du erhältst künftig Informationen zu unseren Veranstaltungen und Neuigkeiten.
 
@@ -413,16 +622,8 @@ Dein Würstelbaron-Team`,
                         </div>
                     `
                 });
-
-                console.log("GMX-Versandprotokoll:", {
-                    accepted: info.accepted,
-                    rejected: info.rejected,
-                    response: info.response,
-                    messageId: info.messageId
-                });
             } catch (mailFehler) {
                 console.error("Newsletter-Bestätigung konnte nicht versendet werden:", mailFehler);
-
                 return res.status(201).json({
                     success: true,
                     mailFehler: true,
@@ -442,7 +643,6 @@ Dein Würstelbaron-Team`,
             }
 
             console.error("Newsletter-Anmeldung fehlgeschlagen:", fehler);
-
             res.status(500).json({
                 message: "Die Anmeldung ist leider fehlgeschlagen. Bitte versuche es später erneut."
             });
@@ -450,10 +650,7 @@ Dein Würstelbaron-Team`,
     });
 
     try {
-        await db.collection("newsletter").createIndex(
-            { email: 1 },
-            { unique: true }
-        );
+        await db.collection("newsletter").createIndex({ email: 1 }, { unique: true });
     } catch (fehler) {
         console.error("Newsletter-Index konnte nicht erstellt werden:", fehler);
     }
@@ -464,23 +661,16 @@ Dein Würstelbaron-Team`,
         });
 
         if (!admin || !(await bcrypt.compare(req.body.password || "", admin.passwordHash))) {
-            return res.status(401).json({
-                message: "Benutzername oder Passwort falsch."
-            });
+            return res.status(401).json({ message: "Benutzername oder Passwort falsch." });
         }
 
         req.session.regenerate(err => {
-            if (err) {
-                return res.sendStatus(500);
-            }
+            if (err) return res.sendStatus(500);
 
             req.session.admin = admin.username;
 
             req.session.save(err => {
-                if (err) {
-                    return res.sendStatus(500);
-                }
-
+                if (err) return res.sendStatus(500);
                 res.json({ success: true });
             });
         });
