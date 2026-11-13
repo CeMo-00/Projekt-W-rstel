@@ -502,7 +502,6 @@ input[type="reset"]:active {
     padding: 10px 12px 65px !important;
     line-height: 1.5;
     text-align: left;
-    vertical-align: top;
     resize: vertical;
 }
 

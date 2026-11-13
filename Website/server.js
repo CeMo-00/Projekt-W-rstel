@@ -12,7 +12,7 @@ const { engine } = require("express-handlebars");
 const nodemailer = require("nodemailer");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const MAX_LOGIN_VERSUCHE = 3;
 const LOGIN_SPERRE_MINUTEN = 10;
@@ -765,7 +765,7 @@ Dein Würstelbaron-Team`,
     });
 
     app.listen(PORT, () => {
-        console.log(`Website läuft auf http://localhost:${PORT}`);
+        console.log(`Website läuft auf Port ${PORT}`);
     });
 }
 
