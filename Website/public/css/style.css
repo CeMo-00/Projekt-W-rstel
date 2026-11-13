@@ -274,7 +274,22 @@ hr {
 }
 
 .speisen-liste,
-.getraenke-liste { row-gap: 10px; }
+.getraenke-liste {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 180px;
+    row-gap: 25px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.speisen-liste > div,
+.getraenke-liste > div {
+    width: auto;
+    max-width: none;
+    padding: 0;
+    margin-bottom: 0 !important;
+}
 
 .getraenke-liste { margin-bottom: 35px; }
 
@@ -791,6 +806,13 @@ input[type="reset"]:active {
     .seiten-logo { width: 150px; }
     .seiteninhalt { padding-top: 25px; }
     .card-body { padding: 17px; }
+
+    .speisen-liste,
+    .getraenke-liste {
+        grid-template-columns: 1fr;
+        column-gap: 0;
+        row-gap: 25px;
+    }
 
     .gericht-kopf { flex-wrap: nowrap; }
     .speisekarte .gericht-name { font-size: 1.15rem; }
