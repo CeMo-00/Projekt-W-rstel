@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 
 const express = require("express");
@@ -12,6 +13,10 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = 3000;
+
+const MAX_LOGIN_VERSUCHE = 3;
+const LOGIN_SPERRE_MINUTEN = 10;
+const loginVersuche = new Map();
 
 const storage = multer.diskStorage({
     destination: path.join(__dirname, "public", "bilder"),
@@ -36,20 +41,13 @@ app.engine("handlebars", engine({
     defaultLayout: "main",
     helpers: {
         eq: (a, b) => a === b,
-
         preisFormatieren: preis => {
             const zahl = Number(preis);
-
-            if (!Number.isFinite(zahl)) return "0,00 €";
-
-            return zahl.toFixed(2).replace(".", ",") + " €";
+            return Number.isFinite(zahl) ? zahl.toFixed(2).replace(".", ",") + " €" : "0,00 €";
         },
-
-        preiseText: preise => {
-            if (!preise) return "";
-            return preise.map(p => `${p.menge}=${String(p.preis).replace(".", ",")}`).join("; ");
-        },
-
+        preiseText: preise => preise
+            ? preise.map(p => `${p.menge}=${String(p.preis).replace(".", ",")}`).join("; ")
+            : "",
         allergeneText: allergene => allergene ? allergene.join(", ") : ""
     }
 }));
@@ -64,9 +62,7 @@ function adminAuth(req, res, next) {
 
 function adminApiAuth(req, res, next) {
     if (!req.session.admin) {
-        return res.status(401).json({
-            message: "Du musst als Admin eingeloggt sein."
-        });
+        return res.status(401).json({ message: "Du musst als Admin eingeloggt sein." });
     }
     next();
 }
@@ -74,32 +70,28 @@ function adminApiAuth(req, res, next) {
 function datumFormatieren(datum) {
     if (!datum) return "";
 
-    const datumText = String(datum).trim();
+    const teile = String(datum).trim().split("-");
 
-    if (datumText.includes("-")) {
-        const teile = datumText.split("-");
-        if (teile.length === 3) {
-            return `${teile[2].padStart(2, "0")}.${teile[1].padStart(2, "0")}.${teile[0]}`;
-        }
+    if (teile.length === 3) {
+        return `${teile[2].padStart(2, "0")}.${teile[1].padStart(2, "0")}.${teile[0]}`;
     }
 
-    return datumText;
+    return String(datum).trim();
 }
 
 function preiseAuslesen(text) {
-    const preise = String(text || "").split(";");
     const ergebnis = [];
 
-    preise.forEach(eintrag => {
+    String(text || "").split(";").forEach(eintrag => {
         const teile = eintrag.split("=");
 
-        if (teile.length === 2) {
-            const menge = teile[0].trim();
-            const preis = Number(teile[1].trim().replace(",", "."));
+        if (teile.length !== 2) return;
 
-            if (Number.isFinite(preis) && preis >= 0) {
-                ergebnis.push({ menge, preis });
-            }
+        const menge = teile[0].trim();
+        const preis = Number(teile[1].trim().replace(",", "."));
+
+        if (Number.isFinite(preis) && preis >= 0) {
+            ergebnis.push({ menge, preis });
         }
     });
 
@@ -182,8 +174,11 @@ async function startServer() {
     await client.connect();
 
     const db = client.db();
-
     const speisenSammlung = db.collection("speisen");
+    const veranstaltungenSammlung = db.collection("veranstaltungen");
+    const bewertungenSammlung = db.collection("bewertungen");
+    const newsletterSammlung = db.collection("newsletter");
+
     for (const artikel of speisekarteStartdaten) {
         const vorhanden = await speisenSammlung.findOne({ name: artikel.name });
 
@@ -196,6 +191,16 @@ async function startServer() {
             });
         }
     }
+
+    await speisenSammlung.updateMany(
+        { name: "Mineral", kategorie: "Getränk" },
+        { $set: { unterkategorie: "Alkoholfrei" } }
+    );
+
+    await speisenSammlung.updateMany(
+        { name: "Spritzer Weiß / Spritzer Rot", kategorie: "Getränk" },
+        { $set: { unterkategorie: "Alkoholisch" } }
+    );
 
     const smtpKonfiguriert = Boolean(
         process.env.SMTP_HOST &&
@@ -231,6 +236,11 @@ async function startServer() {
         }
     }));
 
+    app.use((req, res, next) => {
+        res.locals.adminEingeloggt = !!req.session.admin;
+        next();
+    });
+
     app.get("/", (req, res) => {
         res.render("startseite", { title: "Würstelbaron" });
     });
@@ -251,30 +261,14 @@ async function startServer() {
         });
 
         const kategorien = ["Alkoholfrei", "Alkoholisch", "Spirituosen", "Kaffee & Tee"];
+        const getraenke = speisen.filter(artikel => artikel.kategorie === "Getränk");
 
-        const getraenke = speisen.filter(artikel =>
-            artikel.kategorie === "Getränk"
-        );
-
-        const getraenkeGruppen = kategorien
-            .map(name => ({
-                name,
-                artikel: getraenke.filter(artikel =>
-                    String(artikel.unterkategorie || "").trim() === name
-                )
-            }))
-            .filter(gruppe => gruppe.artikel.length > 0);
-
-        const weitereGetraenke = getraenke.filter(artikel =>
-            !kategorien.includes(String(artikel.unterkategorie || "").trim())
-        );
-
-        if (weitereGetraenke.length > 0) {
-            getraenkeGruppen.push({
-                name: "Weitere Getränke",
-                artikel: weitereGetraenke
-            });
-        }
+        const getraenkeGruppen = kategorien.map(name => ({
+            name,
+            artikel: getraenke.filter(artikel =>
+                String(artikel.unterkategorie || "").trim() === name
+            )
+        }));
 
         res.render("speisekarte", {
             title: "Speisekarte",
@@ -294,8 +288,7 @@ async function startServer() {
 
     app.get("/veranstaltungen", async (req, res) => {
         const limit = 5;
-
-        const veranstaltungen = await db.collection("veranstaltungen")
+        const veranstaltungen = await veranstaltungenSammlung
             .find()
             .sort({ datum: -1, _id: -1 })
             .limit(limit + 1)
@@ -304,14 +297,12 @@ async function startServer() {
         const weitereVorhanden = veranstaltungen.length > limit;
         veranstaltungen.length = Math.min(veranstaltungen.length, limit);
 
-        const veranstaltungenMitDatum = veranstaltungen.map(v => ({
-            ...v,
-            datumAnzeige: datumFormatieren(v.datum)
-        }));
-
         res.render("veranstaltungen", {
             title: "Veranstaltungen",
-            veranstaltungen: veranstaltungenMitDatum,
+            veranstaltungen: veranstaltungen.map(v => ({
+                ...v,
+                datumAnzeige: datumFormatieren(v.datum)
+            })),
             adminEingeloggt: !!req.session.admin,
             weitereVeranstaltungenVorhanden: weitereVorhanden,
             erfolg: req.query.erfolg,
@@ -323,8 +314,7 @@ async function startServer() {
         try {
             const skip = Math.max(0, parseInt(req.query.skip, 10) || 0);
             const limit = 5;
-
-            const veranstaltungen = await db.collection("veranstaltungen")
+            const veranstaltungen = await veranstaltungenSammlung
                 .find()
                 .sort({ datum: -1, _id: -1 })
                 .skip(skip)
@@ -355,7 +345,7 @@ async function startServer() {
             return res.redirect("/veranstaltungen?fehler=Bitte+alle+Pflichtfelder+ausfüllen");
         }
 
-        await db.collection("veranstaltungen").insertOne({
+        await veranstaltungenSammlung.insertOne({
             titel: titel.trim(),
             datum,
             uhrzeit,
@@ -383,9 +373,13 @@ async function startServer() {
             beschreibung: beschreibung.trim()
         };
 
-        if (req.file) aenderungen.bild = req.file.filename;
+        if (req.file) {
+            aenderungen.bild = req.file.filename;
+        } else if (req.body.bildEntfernen === "true") {
+            aenderungen.bild = "";
+        }
 
-        await db.collection("veranstaltungen").updateOne(
+        await veranstaltungenSammlung.updateOne(
             { _id: new ObjectId(req.params.id) },
             { $set: aenderungen }
         );
@@ -396,7 +390,7 @@ async function startServer() {
     app.post("/veranstaltungen/:id/loeschen", adminAuth, async (req, res) => {
         if (!ObjectId.isValid(req.params.id)) return res.sendStatus(400);
 
-        await db.collection("veranstaltungen").deleteOne({
+        await veranstaltungenSammlung.deleteOne({
             _id: new ObjectId(req.params.id)
         });
 
@@ -411,7 +405,7 @@ async function startServer() {
         const mengenUndPreise = preiseAuslesen(req.body.preise);
         const allergene = allergeneAuslesen(req.body.allergene);
 
-        if (!name || !["Speise", "Getränk"].includes(kategorie) || mengenUndPreise.length === 0) {
+        if (!name || !["Speise", "Getränk"].includes(kategorie) || !mengenUndPreise.length) {
             return res.redirect("/speisekarte");
         }
 
@@ -439,7 +433,7 @@ async function startServer() {
         const mengenUndPreise = preiseAuslesen(req.body.preise);
         const allergene = allergeneAuslesen(req.body.allergene);
 
-        if (!name || !["Speise", "Getränk"].includes(kategorie) || mengenUndPreise.length === 0) {
+        if (!name || !["Speise", "Getränk"].includes(kategorie) || !mengenUndPreise.length) {
             return res.redirect("/speisekarte");
         }
 
@@ -483,8 +477,7 @@ async function startServer() {
         try {
             const skip = Math.max(0, parseInt(req.query.skip, 10) || 0);
             const limit = 5;
-
-            const bewertungen = await db.collection("bewertungen")
+            const bewertungen = await bewertungenSammlung
                 .find()
                 .sort({ erstelltAm: -1, _id: -1 })
                 .skip(skip)
@@ -519,7 +512,7 @@ async function startServer() {
                 return res.status(400).json({ message: "Bitte wähle eine Bewertung zwischen 1 und 5 Sternen." });
             }
 
-            await db.collection("bewertungen").insertOne({
+            await bewertungenSammlung.insertOne({
                 name,
                 kommentar,
                 sterne,
@@ -542,11 +535,11 @@ async function startServer() {
                 return res.status(400).json({ message: "Ungültige Bewertungs-ID." });
             }
 
-            const ergebnis = await db.collection("bewertungen").deleteOne({
+            const ergebnis = await bewertungenSammlung.deleteOne({
                 _id: new ObjectId(req.params.id)
             });
 
-            if (ergebnis.deletedCount === 0) {
+            if (!ergebnis.deletedCount) {
                 return res.status(404).json({ message: "Bewertung wurde nicht gefunden." });
             }
 
@@ -554,6 +547,56 @@ async function startServer() {
         } catch (fehler) {
             console.error("Bewertung konnte nicht gelöscht werden:", fehler);
             res.status(500).json({ message: "Bewertung konnte nicht gelöscht werden." });
+        }
+    });
+
+    app.post("/api/bewertungen/:id/antwort", adminApiAuth, async (req, res) => {
+        try {
+            if (!ObjectId.isValid(req.params.id)) {
+                return res.status(400).json({ message: "Ungültige Bewertungs-ID." });
+            }
+
+            const antwort = String(req.body.antwort || "").trim();
+
+            if (!antwort || antwort.length > 1000) {
+                return res.status(400).json({ message: "Bitte gib eine Antwort mit maximal 1000 Zeichen ein." });
+            }
+
+            const ergebnis = await bewertungenSammlung.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $set: { adminAntwort: antwort, adminAntwortAm: new Date() } }
+            );
+
+            if (!ergebnis.matchedCount) {
+                return res.status(404).json({ message: "Bewertung wurde nicht gefunden." });
+            }
+
+            res.json({ success: true, message: "Antwort wurde gespeichert." });
+        } catch (fehler) {
+            console.error("Antwort konnte nicht gespeichert werden:", fehler);
+            res.status(500).json({ message: "Antwort konnte nicht gespeichert werden." });
+        }
+    });
+
+    app.delete("/api/bewertungen/:id/antwort", adminApiAuth, async (req, res) => {
+        try {
+            if (!ObjectId.isValid(req.params.id)) {
+                return res.status(400).json({ message: "Ungültige Bewertungs-ID." });
+            }
+
+            const ergebnis = await bewertungenSammlung.updateOne(
+                { _id: new ObjectId(req.params.id) },
+                { $unset: { adminAntwort: "", adminAntwortAm: "" } }
+            );
+
+            if (!ergebnis.matchedCount) {
+                return res.status(404).json({ message: "Bewertung wurde nicht gefunden." });
+            }
+
+            res.json({ success: true, message: "Antwort wurde gelöscht." });
+        } catch (fehler) {
+            console.error("Antwort konnte nicht gelöscht werden:", fehler);
+            res.status(500).json({ message: "Antwort konnte nicht gelöscht werden." });
         }
     });
 
@@ -587,8 +630,7 @@ async function startServer() {
                 });
             }
 
-            const newsletter = db.collection("newsletter");
-            const bereitsAngemeldet = await newsletter.findOne({ email });
+            const bereitsAngemeldet = await newsletterSammlung.findOne({ email });
 
             if (bereitsAngemeldet) {
                 return res.status(409).json({
@@ -596,7 +638,7 @@ async function startServer() {
                 });
             }
 
-            await newsletter.insertOne({
+            await newsletterSammlung.insertOne({
                 email,
                 einwilligung: true,
                 angemeldetAm: new Date()
@@ -650,25 +692,60 @@ Dein Würstelbaron-Team`,
     });
 
     try {
-        await db.collection("newsletter").createIndex({ email: 1 }, { unique: true });
+        await newsletterSammlung.createIndex({ email: 1 }, { unique: true });
     } catch (fehler) {
         console.error("Newsletter-Index konnte nicht erstellt werden:", fehler);
     }
 
     app.post("/api/login", async (req, res) => {
-        const admin = await db.collection("admins").findOne({
-            username: req.body.username?.trim()
-        });
+        const username = String(req.body.username || "").trim();
+        const password = req.body.password || "";
+        const jetzt = Date.now();
 
-        if (!admin || !(await bcrypt.compare(req.body.password || "", admin.passwordHash))) {
-            return res.status(401).json({ message: "Benutzername oder Passwort falsch." });
+        let loginDaten = loginVersuche.get(username) || {
+            versuche: 0,
+            gesperrtBis: 0
+        };
+
+        if (loginDaten.gesperrtBis > jetzt) {
+            const verbleibendeZeit = Math.ceil((loginDaten.gesperrtBis - jetzt) / 60000);
+
+            return res.status(429).json({
+                message: `Zu viele falsche Versuche. Bitte warte noch ${verbleibendeZeit} Minuten.`
+            });
         }
+
+        if (loginDaten.gesperrtBis && loginDaten.gesperrtBis <= jetzt) {
+            loginDaten = { versuche: 0, gesperrtBis: 0 };
+        }
+
+        const admin = await db.collection("admins").findOne({ username });
+
+        if (!admin || !(await bcrypt.compare(password, admin.passwordHash))) {
+            loginDaten.versuche++;
+
+            if (loginDaten.versuche >= MAX_LOGIN_VERSUCHE) {
+                loginDaten.gesperrtBis = jetzt + LOGIN_SPERRE_MINUTEN * 60 * 1000;
+                loginVersuche.set(username, loginDaten);
+
+                return res.status(429).json({
+                    message: `Du hast das Passwort ${MAX_LOGIN_VERSUCHE} Mal falsch eingegeben. Der Login ist für ${LOGIN_SPERRE_MINUTEN} Minuten gesperrt.`
+                });
+            }
+
+            loginVersuche.set(username, loginDaten);
+
+            return res.status(401).json({
+                message: `Benutzername oder Passwort falsch. Versuch ${loginDaten.versuche} von ${MAX_LOGIN_VERSUCHE}.`
+            });
+        }
+
+        loginVersuche.delete(username);
 
         req.session.regenerate(err => {
             if (err) return res.sendStatus(500);
 
             req.session.admin = admin.username;
-
             req.session.save(err => {
                 if (err) return res.sendStatus(500);
                 res.json({ success: true });

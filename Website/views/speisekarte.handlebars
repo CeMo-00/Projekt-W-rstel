@@ -1,121 +1,140 @@
 
-<h1>Speisekarte</h1>
+<div class="speisekarte">
+    <h1>Speisekarte</h1>
 
-<div class="container mt-4">
+    <div class="container mt-4">
 
-    {{#if adminEingeloggt}}
-        <div id="admin-bereich" class="mb-4">
-            <h2>Neuen Artikel hinzufügen</h2>
+        {{#if adminEingeloggt}}
+            <div id="admin-bereich" class="admin-bereich mb-4">
+                <h2>Neuen Artikel hinzufügen</h2>
 
-            <form action="/speisekarte/erstellen" method="POST" enctype="multipart/form-data"
-                  class="mb-4 varianten-formular">
+                <form action="/speisekarte/erstellen" method="POST"
+                      enctype="multipart/form-data"
+                      class="mb-4 varianten-formular">
 
-                <div class="mb-3">
-                    <label class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control" required>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Kategorie</label>
-                    <select name="kategorie" id="artikel-kategorie" class="form-select" required>
-                        <option value="Speise">Speise</option>
-                        <option value="Getränk">Getränk</option>
-                    </select>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategorie</label>
+                        <select name="kategorie" id="artikel-kategorie"
+                                class="form-select" required>
+                            <option value="Speise">Speise</option>
+                            <option value="Getränk">Getränk</option>
+                        </select>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Unterkategorie</label>
-                    <select name="unterkategorie" class="form-select">
-                        <option value="Speisen">Speisen</option>
-                        <option value="Alkoholfrei">Alkoholfrei</option>
-                        <option value="Alkoholisch">Alkoholisch</option>
-                        <option value="Spirituosen">Spirituosen</option>
-                        <option value="Kaffee & Tee">Kaffee & Tee</option>
-                    </select>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unterkategorie</label>
+                        <select name="unterkategorie" class="form-select">
+                            <option value="Speisen">Speisen</option>
+                            <option value="Alkoholfrei">Alkoholfrei</option>
+                            <option value="Alkoholisch">Alkoholisch</option>
+                            <option value="Spirituosen">Spirituosen</option>
+                            <option value="Kaffee & Tee">Kaffee & Tee</option>
+                        </select>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Beschreibung (optional)</label>
-                    <textarea name="beschreibung" class="form-control" rows="2"></textarea>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Beschreibung (optional)</label>
+                        <textarea name="beschreibung" class="form-control" rows="2"></textarea>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Größe / Bezeichnung und Preis</label>
-                    <div class="varianten-liste"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Größe / Bezeichnung und Preis</label>
+                        <div class="varianten-liste"></div>
 
-                    <button type="button" class="btn btn-outline-primary mt-2 variante-hinzufuegen">
-                        + Weitere Variante hinzufügen
+                        <button type="button"
+                                class="btn btn-outline-primary mt-2 variante-hinzufuegen">
+                            Weitere Variante hinzufügen
+                        </button>
+
+                        <input type="hidden" name="preise" class="preise-hidden">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Allergene</label>
+                        <input type="text" name="allergene" class="form-control"
+                               placeholder="A, G, L, M">
+                    </div>
+
+                    <div class="mb-3" id="bild-feld">
+                        <label class="form-label">Bild (optional, nur für Speisen)</label>
+                        <input type="file" name="bild" class="form-control"
+                               accept="image/jpeg,image/png,image/webp">
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        Artikel hinzufügen
                     </button>
+                </form>
+            </div>
+        {{/if}}
 
-                    <input type="hidden" name="preise" class="preise-hidden">
-                </div>
+        <h2 class="mt-4">Speisen</h2>
 
-                <div class="mb-3">
-                    <label class="form-label">Allergene</label>
-                    <input type="text" name="allergene" class="form-control"
-                           placeholder="A, G, L, M">
-                </div>
+        <div class="row speisen-liste">
+            {{#each speisen}}
+                {{#if (eq kategorie "Speise")}}
+                    <div class="col-md-4 mb-4">
+                        <div class="gericht">
 
-                <div class="mb-3" id="bild-feld">
-                    <label class="form-label">Bild (optional, nur für Speisen)</label>
-                    <input type="file" name="bild" class="form-control"
-                           accept="image/jpeg,image/png,image/webp">
-                </div>
+                            <div class="gericht-kopf">
+                                {{#if bild}}
+                                    <h3 class="gericht-name speise-name-mit-bild"
+                                        data-bild="/bilder/{{bild}}"
+                                        data-name="{{name}}"
+                                        role="button"
+                                        tabindex="0"
+                                        aria-label="Bild von {{name}} anzeigen">
+                                        {{name}}
+                                    </h3>
+                                {{else}}
+                                    <h3 class="gericht-name">{{name}}</h3>
+                                {{/if}}
 
-                <button type="submit" class="btn btn-success">Artikel hinzufügen</button>
-            </form>
-        </div>
-    {{/if}}
-
-    <h2 class="mt-4">Speisen</h2>
-
-    <div class="row">
-        {{#each speisen}}
-            {{#if (eq kategorie "Speise")}}
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100 gericht">
-                        <div class="card-body">
-
-                            {{#if bild}}
-                                <h3 class="gericht-name speise-name-mit-bild"
-                                    data-bild="/bilder/{{bild}}"
-                                    data-name="{{name}}"
-                                    role="button"
-                                    tabindex="0"
-                                    aria-label="Bild von {{name}} anzeigen">
-                                    {{name}}
-                                </h3>
-                            {{else}}
-                                <h3 class="gericht-name">{{name}}</h3>
-                            {{/if}}
+                                {{#unless (lookup (lookup mengenUndPreise 0) "menge")}}
+                                    <strong class="gericht-preis">
+                                        {{preisFormatieren (lookup (lookup mengenUndPreise 0) "preis")}}
+                                    </strong>
+                                {{/unless}}
+                            </div>
 
                             {{#if beschreibung}}
                                 <p>{{beschreibung}}</p>
                             {{/if}}
 
                             {{#each mengenUndPreise}}
-                                <div class="d-flex justify-content-between">
-                                    {{#if menge}}
+                                {{#if menge}}
+                                    <div class="gericht-variante">
                                         <span>{{menge}}</span>
-                                    {{/if}}
-                                    <strong>{{preisFormatieren preis}}</strong>
-                                </div>
+                                        <strong>{{preisFormatieren preis}}</strong>
+                                    </div>
+                                {{/if}}
                             {{/each}}
 
                             {{#if allergene.length}}
-                                <p class="mt-2">Allergene: {{allergeneText allergene}}</p>
+                                <p class="speise-allergene">
+                                    Allergene: {{allergeneText allergene}}
+                                </p>
                             {{/if}}
 
                             {{#if ../adminEingeloggt}}
                                 <div class="speise-admin-aktionen mt-3">
 
-                                    <button type="button" class="btn btn-outline-primary speise-bearbeiten-button">
+                                    <button type="button"
+                                            class="btn btn-outline-primary speise-bearbeiten-button">
                                         Bearbeiten
                                     </button>
 
-                                    <form action="/speisekarte/{{_id}}/loeschen" method="POST"
+                                    <form action="/speisekarte/{{_id}}/loeschen"
+                                          method="POST"
                                           class="d-inline loeschen-formular">
-                                        <button type="submit" class="btn btn-danger">Löschen</button>
+                                        <button type="submit" class="btn btn-danger">
+                                            Löschen
+                                        </button>
                                     </form>
 
                                     <div class="speise-bearbeiten mt-3" hidden>
@@ -123,12 +142,14 @@
                                         <h4>Artikel bearbeiten</h4>
 
                                         <form action="/speisekarte/{{_id}}/bearbeiten"
-                                              method="POST" enctype="multipart/form-data"
+                                              method="POST"
+                                              enctype="multipart/form-data"
                                               class="varianten-formular">
 
                                             <div class="mb-3">
                                                 <label class="form-label">Name</label>
-                                                <input type="text" name="name" class="form-control"
+                                                <input type="text" name="name"
+                                                       class="form-control"
                                                        value="{{name}}" required>
                                             </div>
 
@@ -142,45 +163,53 @@
 
                                             <div class="mb-3">
                                                 <label class="form-label">Unterkategorie</label>
-                                                <input type="text" name="unterkategorie" class="form-control"
+                                                <input type="text" name="unterkategorie"
+                                                       class="form-control"
                                                        value="{{unterkategorie}}">
                                             </div>
 
                                             <div class="mb-3">
                                                 <label class="form-label">Beschreibung</label>
-                                                <textarea name="beschreibung" class="form-control">{{beschreibung}}</textarea>
+                                                <textarea name="beschreibung"
+                                                          class="form-control">{{beschreibung}}</textarea>
                                             </div>
 
                                             <div class="mb-3">
                                                 <label class="form-label">Größe / Bezeichnung und Preis</label>
                                                 <div class="varianten-liste"></div>
 
-                                                <button type="button" class="btn btn-outline-primary mt-2 variante-hinzufuegen">
-                                                    + Weitere Variante hinzufügen
+                                                <button type="button"
+                                                        class="btn btn-outline-primary mt-2 variante-hinzufuegen">
+                                                    Weitere Variante hinzufügen
                                                 </button>
 
-                                                <input type="hidden" name="preise" class="preise-hidden"
+                                                <input type="hidden" name="preise"
+                                                       class="preise-hidden"
                                                        value="{{preiseText mengenUndPreise}}">
                                             </div>
 
                                             <div class="mb-3">
                                                 <label class="form-label">Allergene</label>
-                                                <input type="text" name="allergene" class="form-control"
+                                                <input type="text" name="allergene"
+                                                       class="form-control"
                                                        value="{{allergeneText allergene}}">
                                             </div>
 
                                             <div class="mb-3">
                                                 <label class="form-label">Neues Bild (optional)</label>
-                                                <input type="file" name="bild" class="form-control"
+                                                <input type="file" name="bild"
+                                                       class="form-control"
                                                        accept="image/jpeg,image/png,image/webp">
                                                 <small class="form-text text-muted">
-                                                    Wenn du kein neues Bild auswählst, bleibt das bisherige Bild erhalten.
+                                                    Ohne neues Bild bleibt das bisherige Bild erhalten.
                                                 </small>
                                             </div>
 
-                                            <button type="submit" class="btn btn-success">
-                                                Änderungen speichern
-                                            </button>
+                                            <div class="admin-formular-aktionen">
+                                                <button type="submit" class="btn btn-success">
+                                                    Änderungen speichern
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
                                 </div>
@@ -188,198 +217,220 @@
 
                         </div>
                     </div>
+                {{/if}}
+            {{/each}}
+        </div>
+
+        <h2 class="mt-5">Getränke</h2>
+
+        {{#each getraenkeGruppen}}
+            {{#if artikel.length}}
+                <h3 class="mt-4">{{name}}</h3>
+
+                <div class="row getraenke-liste">
+                    {{#each artikel}}
+                        <div class="col-md-4 mb-3">
+                            <div class="gericht">
+
+                                <div class="gericht-kopf">
+                                    <h4>{{name}}</h4>
+
+                                    {{#unless (lookup (lookup mengenUndPreise 0) "menge")}}
+                                        <strong class="gericht-preis">
+                                            {{preisFormatieren (lookup (lookup mengenUndPreise 0) "preis")}}
+                                        </strong>
+                                    {{/unless}}
+                                </div>
+
+                                {{#if beschreibung}}
+                                    <p>{{beschreibung}}</p>
+                                {{/if}}
+
+                                {{#each mengenUndPreise}}
+                                    {{#if menge}}
+                                        <div class="gericht-variante">
+                                            <span>{{menge}}</span>
+                                            <strong>{{preisFormatieren preis}}</strong>
+                                        </div>
+                                    {{/if}}
+                                {{/each}}
+
+                                {{#if ../../adminEingeloggt}}
+                                    <div class="speise-admin-aktionen mt-3">
+
+                                        <button type="button"
+                                                class="btn btn-outline-primary speise-bearbeiten-button">
+                                            Bearbeiten
+                                        </button>
+
+                                        <form action="/speisekarte/{{_id}}/loeschen"
+                                              method="POST"
+                                              class="d-inline loeschen-formular">
+                                            <button type="submit" class="btn btn-danger">
+                                                Löschen
+                                            </button>
+                                        </form>
+
+                                        <div class="speise-bearbeiten mt-3" hidden>
+                                            <hr>
+                                            <h4>Artikel bearbeiten</h4>
+
+                                            <form action="/speisekarte/{{_id}}/bearbeiten"
+                                                  method="POST"
+                                                  class="varianten-formular">
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" name="name"
+                                                           class="form-control"
+                                                           value="{{name}}" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Kategorie</label>
+                                                    <select name="kategorie" class="form-select">
+                                                        <option value="Getränk" selected>Getränk</option>
+                                                        <option value="Speise">Speise</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Unterkategorie</label>
+                                                    <select name="unterkategorie" class="form-select">
+                                                        <option value="Alkoholfrei" {{#if (eq unterkategorie "Alkoholfrei")}}selected{{/if}}>Alkoholfrei</option>
+                                                        <option value="Alkoholisch" {{#if (eq unterkategorie "Alkoholisch")}}selected{{/if}}>Alkoholisch</option>
+                                                        <option value="Spirituosen" {{#if (eq unterkategorie "Spirituosen")}}selected{{/if}}>Spirituosen</option>
+                                                        <option value="Kaffee & Tee" {{#if (eq unterkategorie "Kaffee & Tee")}}selected{{/if}}>Kaffee & Tee</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Beschreibung</label>
+                                                    <textarea name="beschreibung"
+                                                              class="form-control">{{beschreibung}}</textarea>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Größe / Bezeichnung und Preis</label>
+                                                    <div class="varianten-liste"></div>
+
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary mt-2 variante-hinzufuegen">
+                                                        Weitere Variante hinzufügen
+                                                    </button>
+
+                                                    <input type="hidden" name="preise"
+                                                           class="preise-hidden"
+                                                           value="{{preiseText mengenUndPreise}}">
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">Allergene</label>
+                                                    <input type="text" name="allergene"
+                                                           class="form-control"
+                                                           value="{{allergeneText allergene}}">
+                                                </div>
+
+                                                <div class="admin-formular-aktionen">
+                                                    <button type="submit" class="btn btn-success">
+                                                        Änderungen speichern
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {{/if}}
+
+                            </div>
+                        </div>
+                    {{/each}}
                 </div>
             {{/if}}
         {{/each}}
-    </div>
 
-    <h2 class="mt-5">Getränke</h2>
+        <p class="mt-4">
+            Kren / Ketchup / Senf / Mayonnaise / Gurkerl / Pfefferoni / Semmel: 0,50 €
+        </p>
 
-    {{#each getraenkeGruppen}}
-        <h3 class="mt-4">{{name}}</h3>
+        <p>
+            Alle Speisen auch zum Mitnehmen. Verpackung bei Abholung: 0,40 €.
+        </p>
 
-        <div class="row">
-            {{#each artikel}}
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
+        <h3 class="mt-4">Allergene</h3>
 
-                            <h4>{{name}}</h4>
+        <p>
+            A – Gluten | B – Krebstiere | D – Fisch | E – Erdnüsse |
+            F – Sojabohnen | G – Milch | H – Schalenfrüchte |
+            L – Sellerie | M – Senf | N – Sesamsamen |
+            P – Lupine | R – Weichtiere | O – Schwefeldioxid
+        </p>
 
-                            {{#if beschreibung}}
-                                <p>{{beschreibung}}</p>
-                            {{/if}}
+        <p class="mt-3">
+            <strong>
+                Kein Alkoholausschank an Jugendliche unter 16 Jahren /
+                keine Spirituosen unter 18 Jahren.
+            </strong>
+        </p>
 
-                            {{#each mengenUndPreise}}
-                                <div class="d-flex justify-content-between">
-                                    {{#if menge}}
-                                        <span>{{menge}}</span>
-                                    {{/if}}
-                                    <strong>{{preisFormatieren preis}}</strong>
-                                </div>
-                            {{/each}}
+        <hr class="my-5">
 
-                            {{#if ../../adminEingeloggt}}
-                                <div class="speise-admin-aktionen mt-3">
+        <h2>Bewertungen</h2>
 
-                                    <button type="button" class="btn btn-outline-primary speise-bearbeiten-button">
-                                        Bearbeiten
-                                    </button>
+        <form id="bewertungsformular" class="mb-4">
 
-                                    <form action="/speisekarte/{{_id}}/loeschen" method="POST"
-                                          class="d-inline loeschen-formular">
-                                        <button type="submit" class="btn btn-danger">Löschen</button>
-                                    </form>
+            <div class="mb-3">
+                <label for="bewertungsname" class="form-label">Dein Name</label>
+                <input type="text" id="bewertungsname" name="name"
+                       class="form-control" maxlength="50" required>
+            </div>
 
-                                    <div class="speise-bearbeiten mt-3" hidden>
-                                        <hr>
-                                        <h4>Artikel bearbeiten</h4>
+            <div class="mb-3 sterne-auswahl">
+                <span class="form-label sterne-ueberschrift">Deine Bewertung</span>
 
-                                        <form action="/speisekarte/{{_id}}/bearbeiten" method="POST"
-                                              class="varianten-formular">
+                <input type="radio" id="sterne-1" name="sterne" value="1" required>
+                <label class="stern-label" for="sterne-1">★</label>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Name</label>
-                                                <input type="text" name="name" class="form-control"
-                                                       value="{{name}}" required>
-                                            </div>
+                <input type="radio" id="sterne-2" name="sterne" value="2">
+                <label class="stern-label" for="sterne-2">★</label>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Kategorie</label>
-                                                <select name="kategorie" class="form-select">
-                                                    <option value="Getränk" selected>Getränk</option>
-                                                    <option value="Speise">Speise</option>
-                                                </select>
-                                            </div>
+                <input type="radio" id="sterne-3" name="sterne" value="3">
+                <label class="stern-label" for="sterne-3">★</label>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Unterkategorie</label>
-                                                <select name="unterkategorie" class="form-select">
-                                                    <option value="Alkoholfrei" {{#if (eq unterkategorie "Alkoholfrei")}}selected{{/if}}>Alkoholfrei</option>
-                                                    <option value="Alkoholisch" {{#if (eq unterkategorie "Alkoholisch")}}selected{{/if}}>Alkoholisch</option>
-                                                    <option value="Spirituosen" {{#if (eq unterkategorie "Spirituosen")}}selected{{/if}}>Spirituosen</option>
-                                                    <option value="Kaffee & Tee" {{#if (eq unterkategorie "Kaffee & Tee")}}selected{{/if}}>Kaffee & Tee</option>
-                                                </select>
-                                            </div>
+                <input type="radio" id="sterne-4" name="sterne" value="4">
+                <label class="stern-label" for="sterne-4">★</label>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Beschreibung</label>
-                                                <textarea name="beschreibung" class="form-control">{{beschreibung}}</textarea>
-                                            </div>
+                <input type="radio" id="sterne-5" name="sterne" value="5">
+                <label class="stern-label" for="sterne-5">★</label>
+            </div>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Größe / Bezeichnung und Preis</label>
-                                                <div class="varianten-liste"></div>
+            <div class="mb-3">
+                <label for="bewertungskommentar" class="form-label">Dein Kommentar</label>
+                <textarea id="bewertungskommentar" name="kommentar"
+                          class="form-control" rows="3"
+                          maxlength="1000" required></textarea>
+            </div>
 
-                                                <button type="button" class="btn btn-outline-primary mt-2 variante-hinzufuegen">
-                                                    + Weitere Variante hinzufügen
-                                                </button>
+            <button type="submit" id="bewertung-absenden" class="btn btn-success">
+                Bewertung absenden
+            </button>
 
-                                                <input type="hidden" name="preise" class="preise-hidden"
-                                                       value="{{preiseText mengenUndPreise}}">
-                                            </div>
+            <p id="bewertung-meldung" class="mt-2"></p>
+        </form>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Allergene</label>
-                                                <input type="text" name="allergene" class="form-control"
-                                                       value="{{allergeneText allergene}}">
-                                            </div>
-
-                                            <button type="submit" class="btn btn-success">
-                                                Änderungen speichern
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {{/if}}
-
-                        </div>
-                    </div>
-                </div>
-            {{/each}}
-        </div>
-    {{/each}}
-
-
-    <p class="mt-4">
-        Kren / Ketchup / Senf / Mayonnaise / Gurkerl / Pfefferoni / Semmel: 0,50 €
-    </p>
-
-    <p>
-        Alle Speisen auch zum Mitnehmen. Verpackung bei Abholung: 0,40 €.
-    </p>
-
-    <h3 class="mt-4">Allergene</h3>
-
-    <p>
-        A – Gluten | B – Krebstiere | D – Fisch | E – Erdnüsse |
-        F – Sojabohnen | G – Milch | H – Schalenfrüchte |
-        L – Sellerie | M – Senf | N – Sesamsamen |
-        P – Lupine | R – Weichtiere | O – Schwefeldioxid
-    </p>
-
-    <p class="mt-3"><strong>
-        Kein Alkoholausschank an Jugendliche unter 16 Jahren /
-        keine Spirituosen unter 18 Jahren.
-    </strong></p>
-
-
-    <hr class="my-5">
-
-    <h2>Bewertungen</h2>
-
-    <form id="bewertungsformular" class="mb-4">
-
-        <div class="mb-3">
-            <label for="bewertungsname" class="form-label">Dein Name</label>
-            <input type="text" id="bewertungsname" name="name" class="form-control"
-                   maxlength="50" required>
+        <div id="bewertungsliste" data-admin="{{adminEingeloggt}}">
+            Bewertungen werden geladen ...
         </div>
 
-        <div class="mb-3 sterne-auswahl">
-            <label class="form-label d-block">Deine Bewertung</label>
-
-            <input type="radio" id="sterne-5" name="sterne" value="5">
-            <label for="sterne-5">★</label>
-
-            <input type="radio" id="sterne-4" name="sterne" value="4">
-            <label for="sterne-4">★</label>
-
-            <input type="radio" id="sterne-3" name="sterne" value="3">
-            <label for="sterne-3">★</label>
-
-            <input type="radio" id="sterne-2" name="sterne" value="2">
-            <label for="sterne-2">★</label>
-
-            <input type="radio" id="sterne-1" name="sterne" value="1">
-            <label for="sterne-1">★</label>
-        </div>
-
-        <div class="mb-3">
-            <label for="bewertungskommentar" class="form-label">Dein Kommentar</label>
-            <textarea id="bewertungskommentar" name="kommentar"
-                      class="form-control" rows="3" maxlength="1000" required></textarea>
-        </div>
-
-        <button type="submit" id="bewertung-absenden" class="btn btn-success">
-            Bewertung absenden
+        <button type="button" id="mehr-bewertungen"
+                class="btn btn-outline-primary" hidden>
+            Weitere Bewertungen laden
         </button>
 
-        <p id="bewertung-meldung" class="mt-2"></p>
-    </form>
-
-    <div id="bewertungsliste" data-admin="{{adminEingeloggt}}">
-        Bewertungen werden geladen ...
     </div>
 
-    <button type="button" id="mehr-bewertungen" class="btn btn-outline-primary" hidden>
-        Weitere Bewertungen laden
-    </button>
-
-</div>
-
-
-<div id="bild-popup" hidden>
-    <button type="button" id="popup-schließen" aria-label="Bild schließen">×</button>
-    <img id="popup-bild" src="" alt="">
+    <div id="bild-popup" hidden>
+        <button type="button" id="popup-schließen"
+                aria-label="Bild schließen">×</button>
+        <img id="popup-bild" src="" alt="">
+    </div>
 </div>

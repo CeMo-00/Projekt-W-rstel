@@ -1,5 +1,6 @@
 
 {
+    "id": "/",
     "name": "Würstelbaron",
     "short_name": "Würstelbaron",
     "description": "Website des Würstelbarons",
@@ -9,9 +10,10 @@
     "start_url": "/",
     "icons": [
         {
-            "src": "/bilder/wuerstelicon.jpg",
-            "sizes": "301x301",
-            "type": "image/jpeg"
+            "src": "/bilder/wuerstelicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
         }
     ]
 }

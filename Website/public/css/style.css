@@ -1,74 +1,474 @@
 
-body {
-    background-color: rgb(60, 60, 60);
-    color: white;
+:root {
+    --hintergrund: #292929;
+    --hintergrund-hell: #353535;
+    --hintergrund-dunkel: #171717;
+    --gelb: #f2c230;
+    --gelb-hell: #ffda55;
+    --text: #ffffff;
+    --text-hell: #cccccc;
+    --rot: #dc3545;
+    --rand: rgba(255, 255, 255, 0.14);
 }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--hintergrund);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+h1, h2, h3, h4, h5 {
+    color: white;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2.3rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-top: 2rem;
+}
+
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.15rem; }
+p { margin-bottom: 1rem; }
+
+a {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+a:hover { color: #6ea8fe; }
 
 .navbar {
-    background-color: black;
+    background: var(--hintergrund-dunkel);
+    border-bottom: 2px solid var(--gelb);
+    padding: 10px 0;
 }
 
-.navbar a {
+.navbar .navbar-collapse { justify-content: flex-end; }
+.navbar .navbar-nav { margin-left: auto; }
+
+.navbar .nav-link {
     color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 18px !important;
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-.speisekarte {
-    background-color: transparent;
-    color: white;
+.navbar .nav-link:hover,
+.navbar .nav-link:focus { color: var(--gelb); }
+
+.navbar-toggler { border-color: var(--gelb); }
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(242, 194, 48, 0.3);
 }
 
-.speisekarte h1,
-.speisekarte h2,
-.speisekarte h3,
-.speisekarte p {
-    color: white;
+.logo-bereich {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background: var(--hintergrund);
+}
+
+.seiten-logo {
+    display: block;
+    width: 170px;
+    max-width: 65vw;
+    height: auto;
+}
+
+.seiteninhalt {
+    min-height: 70vh;
+    padding: 30px 0 50px;
+}
+
+.seiten-footer {
+    padding: 20px;
+    text-align: center;
+    background: var(--hintergrund-dunkel);
+    border-top: 1px solid var(--rand);
+    color: var(--text-hell);
+}
+
+.seiten-footer p { margin: 0; }
+
+.startseite h1,
+.startseite h2 { color: white; }
+
+.startseite h1 { margin-bottom: 2.5rem; }
+
+.startseiten-bild {
+    display: block;
+    width: 100%;
+    max-width: 1100px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    margin: 0 auto 35px;
+}
+
+.startseiten-text {
+    max-width: 1100px;
+    margin: 0 auto 60px;
+    font-size: 1.1rem;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji";
+}
+
+.startseiten-infos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    max-width: 1100px;
+    margin: 40px auto 0;
+}
+
+.startseiten-infos section {
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.startseiten-infos h2 { margin: 0 0 20px; }
+.oeffnungszeiten p { margin-bottom: 8px; }
+.standort p { margin-bottom: 15px; }
+
+#map {
+    width: 100%;
+    height: 350px;
+    min-height: 350px;
+    border: 1px solid var(--rand);
+    border-radius: 6px;
+    z-index: 1;
+    background: #dddddd;
+}
+
+.leaflet-container { background: #dddddd; }
+
+.roter-kartenmarker {
+    background: transparent;
+    border: none;
+}
+
+.marker-punkt {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    background: var(--rot);
+    border: 1.5px solid white;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.marker-punkt::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: 8.5px;
+    left: 8.5px;
+    background: white;
+    border-radius: 50%;
 }
 
 .card,
 .card-body {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: white !important;
+    background: var(--hintergrund-hell) !important;
+    border: 1px solid var(--rand) !important;
+    border-radius: 10px;
+    color: var(--text) !important;
 }
 
-#bild-popup[hidden] {
+.card { overflow: visible; }
+.card-body { padding: 22px; }
+
+.card h3,
+.card h4 { color: var(--gelb); }
+
+hr {
+    border-color: var(--rand);
+    opacity: 1;
+    margin: 25px 0;
+}
+
+.speisekarte { color: var(--text); }
+
+.speisekarte h1,
+.speisekarte h2,
+.speisekarte h3.mt-4 { color: var(--gelb); }
+
+.speisekarte h3,
+.speisekarte h4,
+.speisekarte p { color: var(--text); }
+
+.speisekarte .gericht {
+    height: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+}
+
+.speisekarte .gericht-name {
+    color: white;
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.speisekarte .speise-name-mit-bild { cursor: pointer; }
+
+.speisekarte .speise-name-mit-bild:hover { color: white; }
+
+.speisekarte .gericht-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.speisekarte .gericht-kopf h3,
+.speisekarte .gericht-kopf h4 { margin: 0; }
+
+.speisekarte .gericht-preis {
+    white-space: nowrap;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.speisekarte .gericht-variante {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 15px;
+    padding: 3px 0;
+}
+
+.speisekarte .gericht-variante span,
+.speisekarte .gericht-variante strong,
+.speisekarte .speise-allergene { color: white; }
+
+.speisekarte .speise-allergene {
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.speisen-liste,
+.getraenke-liste { row-gap: 10px; }
+
+.getraenke-liste { margin-bottom: 35px; }
+
+#bild-popup[hidden],
+.emoji-picker-popup[hidden],
+.speise-bearbeiten[hidden],
+.veranstaltung-bearbeiten[hidden] {
     display: none !important;
 }
 
 #bild-popup {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 9999;
 }
 
 #popup-bild {
     max-width: 90%;
     max-height: 90vh;
+    object-fit: contain;
 }
 
 #popup-schließen {
     position: absolute;
-    top: 20px;
-    right: 30px;
-    font-size: 35px;
+    top: 15px;
+    right: 25px;
+    font-size: 38px;
     color: white;
     background: none;
     border: none;
     cursor: pointer;
 }
 
-.emoji-feld {
-    position: relative;
+.form-label {
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 7px;
 }
 
-.emoji-eingabe {
-    padding-left: 3rem;
+.form-control,
+.form-select,
+.bewertungsfeld input[type="text"],
+.bewertungsfeld textarea,
+.antwort-formular textarea {
+    background: white;
+    color: #222222;
+    border: 1px solid #bbbbbb;
+    border-radius: 6px;
 }
+
+.form-control,
+.form-select { min-height: 42px; }
+
+textarea.form-control { min-height: 90px; }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--gelb);
+    box-shadow: 0 0 0 0.2rem rgba(242, 194, 48, 0.2);
+}
+
+.form-check-label { color: var(--text); }
+
+button,
+.btn,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+    transition: transform 0.15s ease;
+}
+
+button:hover,
+.btn:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover { transform: scale(1.04); }
+
+button:active,
+.btn:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active {
+    transform: scale(1.08) !important;
+}
+
+.btn-success,
+.btn-primary,
+.bewertungsbereich button[type="submit"],
+.bewertungsbereich input[type="submit"],
+.bewertung-aktionen > button:only-child {
+    background: var(--gelb) !important;
+    border-color: var(--gelb) !important;
+    color: #171717 !important;
+}
+
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.bewertungsbereich button[type="submit"]:hover,
+.bewertungsbereich button[type="submit"]:focus,
+.bewertungsbereich button[type="submit"]:active,
+.bewertungsbereich input[type="submit"]:hover,
+.bewertungsbereich input[type="submit"]:focus,
+.bewertungsbereich input[type="submit"]:active,
+.bewertung-aktionen > button:only-child:hover,
+.bewertung-aktionen > button:only-child:focus,
+.bewertung-aktionen > button:only-child:active {
+    background: var(--gelb) !important;
+    border-color: var(--gelb) !important;
+    color: #171717 !important;
+}
+
+.btn-outline-primary,
+.btn-secondary {
+    background: #666666 !important;
+    color: white !important;
+    border-color: #666666 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background: #666666 !important;
+    border-color: #666666 !important;
+    color: white !important;
+}
+
+.btn-danger,
+.btn-outline-danger {
+    background: var(--rot) !important;
+    border-color: var(--rot) !important;
+    color: white !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+    background: var(--rot) !important;
+    border-color: var(--rot) !important;
+    color: white !important;
+}
+
+.admin-aktionen,
+.speise-admin-aktionen,
+.veranstaltung-admin-aktionen,
+.admin-formular-aktionen {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.speise-bearbeiten,
+.veranstaltung-bearbeiten { width: 100%; }
+
+.admin-bereich {
+    background: var(--hintergrund-hell);
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    padding: 25px;
+}
+
+.admin-bereich.card {
+    background: var(--hintergrund-hell) !important;
+    border: 1px solid var(--rand) !important;
+    padding: 0;
+}
+
+.admin-bereich.card .card-body {
+    background: transparent !important;
+    border: none !important;
+    padding: 25px;
+}
+
+.admin-formular-aktionen { margin-top: 20px; }
+
+#bild-feld + button[type="submit"] { margin-top: 23px; }
+
+.emoji-feld { position: relative; }
+.emoji-eingabe { padding-left: 3rem; }
 
 .emoji-button {
     position: absolute;
@@ -83,34 +483,61 @@ body {
     cursor: pointer;
 }
 
-.emoji-beschreibung .emoji-button {
-    top: auto;
-    bottom: 5px;
-    transform: none;
+.emoji-button:hover,
+.emoji-button:focus { transform: translateY(-50%); }
+
+.emoji-button:active {
+    transform: translateY(-50%) scale(1.08) !important;
 }
 
-.emoji-beschreibung textarea {
-    padding-left: 0.75rem;
-    padding-bottom: 0.375rem;
+#admin-bereich .emoji-beschreibung,
+.veranstaltung-bearbeiten .emoji-beschreibung { position: relative; }
+
+#admin-bereich .emoji-beschreibung textarea,
+.veranstaltung-bearbeiten .emoji-beschreibung textarea {
+    display: block;
+    width: 100%;
+    min-height: 160px !important;
+    height: 160px !important;
+    padding: 10px 12px 65px !important;
+    line-height: 1.5;
+    text-align: left;
+    vertical-align: top;
+    resize: vertical;
+}
+
+#admin-bereich .emoji-beschreibung .emoji-button,
+.veranstaltung-bearbeiten .emoji-beschreibung .emoji-button {
+    position: absolute;
+    top: auto !important;
+    bottom: 8px !important;
+    left: 8px;
+    z-index: 5;
+    transform: none !important;
+}
+
+#admin-bereich .emoji-beschreibung .emoji-button:hover,
+#admin-bereich .emoji-beschreibung .emoji-button:focus,
+.veranstaltung-bearbeiten .emoji-beschreibung .emoji-button:hover,
+.veranstaltung-bearbeiten .emoji-beschreibung .emoji-button:focus {
+    transform: none !important;
+}
+
+#admin-bereich .emoji-beschreibung .emoji-button:active,
+.veranstaltung-bearbeiten .emoji-beschreibung .emoji-button:active {
+    transform: scale(1.08) !important;
 }
 
 .emoji-picker-popup {
-    position: absolute;
-    z-index: 1000;
-    left: 0;
+    position: fixed;
+    z-index: 10000;
     width: 320px;
-    max-width: 90vw;
-}
-
-.emoji-titel .emoji-picker-popup {
-    top: 100%;
-}
-
-.emoji-beschreibung .emoji-picker-popup {
-    bottom: 100%;
+    max-width: calc(100vw - 20px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.55);
 }
 
 .emoji-picker-popup emoji-picker {
+    display: block;
     width: 100%;
     height: 350px;
     --border-radius: 8px;
@@ -118,21 +545,13 @@ body {
 }
 
 .bewertungsbereich {
-    color: white;
+    color: var(--text);
     max-width: 800px;
 }
 
 .bewertungsbereich h2,
 .bewertungsbereich p,
-.bewertungsbereich label {
-    color: white;
-}
-
-.bewertungsfeld input[type="text"],
-.bewertungsfeld textarea {
-    background-color: white;
-    color: black;
-}
+.bewertungsbereich label { color: var(--text); }
 
 .sterne-auswahl {
     display: flex;
@@ -147,23 +566,30 @@ body {
     height: 1px;
 }
 
-.sterne-auswahl label {
+.sterne-auswahl .sterne-ueberschrift {
+    color: white;
+    cursor: default;
+    transform: none;
+    transition: none;
+    user-select: none;
+    margin-right: 8px;
+}
+
+.sterne-auswahl .stern-label {
     color: #777777;
     font-size: 2.2rem;
     cursor: pointer;
     line-height: 1;
     transition: color 0.15s ease, transform 0.15s ease;
+    margin: 0;
 }
 
-.sterne-auswahl label.ausgewaehlt {
-    color: #ffc107;
-}
+.sterne-auswahl .stern-label.ausgewaehlt,
+.sterne-auswahl .stern-label.vorschau { color: var(--gelb) !important; }
 
-.sterne-auswahl label:hover {
-    transform: scale(1.15);
-}
+.sterne-auswahl .stern-label:hover { transform: scale(1.15); }
 
-.sterne-auswahl input:focus-visible + label {
+.sterne-auswahl input:focus-visible + .stern-label {
     outline: 2px solid white;
     outline-offset: 3px;
 }
@@ -182,8 +608,8 @@ body {
 .bewertung-eintrag {
     display: block;
     width: 100%;
-    padding: 15px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rand);
 }
 
 .bewertung-kopf {
@@ -195,10 +621,198 @@ body {
 }
 
 .bewertung-sterne {
-    color: #ffc107;
+    color: var(--gelb);
     font-size: 1.2rem;
 }
 
-.bewertung-datum {
-    color: #cccccc;
+.bewertung-datum { color: var(--text-hell); }
+
+.bewertung-eintrag p,
+.admin-antwort p {
+    white-space: pre-line;
+}
+
+.admin-antwort {
+    background: rgba(255, 255, 255, 0.08);
+    border-left: 3px solid var(--gelb);
+    border-radius: 4px;
+}
+
+.admin-antwort p { color: white; }
+
+.bewertung-aktionen {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.antwort-formular {
+    width: 100%;
+    max-width: 600px;
+}
+
+.bewertung-loeschen-bereich { display: block; }
+
+#mehr-bewertungen { margin-top: 15px; }
+
+.veranstaltung-eintrag {
+    margin-bottom: 0;
+    padding: 25px 0;
+    border-bottom: 1px solid var(--rand);
+}
+
+.veranstaltung-eintrag .card {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.veranstaltung-eintrag .card-body {
+    background: transparent !important;
+    border: none !important;
+    padding: 0;
+}
+
+.seiteninhalt > h1,
+#admin-bereich h2,
+.veranstaltung-eintrag h3 { color: var(--gelb); }
+
+.veranstaltung-eintrag h3 {
+    margin: 0 0 18px;
+}
+
+.veranstaltung-eintrag p {
+    color: white;
+    white-space: pre-line;
+}
+
+.veranstaltung-eintrag .card-img-bottom {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 400px;
+    height: auto;
+    object-fit: contain;
+    object-position: left;
+    margin: 15px 0 0;
+}
+
+.veranstaltung-admin-aktionen {
+    border: none;
+    padding: 15px 0 0;
+    margin-top: 15px;
+}
+
+.veranstaltung-inhalt { padding-bottom: 0; }
+.veranstaltung-bearbeiten { padding-top: 5px; }
+
+.seiten-einleitung {
+    text-align: center;
+    margin-bottom: 35px;
+    color: var(--text-hell);
+}
+
+#veranstaltungsliste { width: 100%; }
+
+#keine-veranstaltungen {
+    text-align: center;
+    color: var(--text-hell);
+    margin: 30px 0;
+}
+
+#mehr-veranstaltungen { margin-top: 20px !important; }
+
+#newsletter {
+    margin-top: 50px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+#newsletter .card-body {
+    background: transparent !important;
+    border: none !important;
+    padding: 0;
+}
+
+#newsletter h2 {
+    color: var(--gelb);
+    margin-top: 0;
+}
+
+#newsletter p { color: white; }
+#newsletter-meldung { margin-top: 10px; }
+
+.impressum-bereich {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.impressum-bereich h1 { color: var(--gelb); }
+
+.impressum-bereich .info-bereich {
+    width: 100%;
+    max-width: 650px;
+    margin: 35px 0 0;
+    text-align: left;
+}
+
+.impressum-bereich .info-bereich h2 {
+    color: var(--gelb);
+    font-size: 1.4rem;
+    margin: 30px 0 12px;
+}
+
+.impressum-bereich .info-bereich h2:first-child { margin-top: 0; }
+
+.impressum-bereich .info-bereich p {
+    color: white;
+    margin-bottom: 25px;
+}
+
+.impressum-bereich a {
+    color: white !important;
+    text-decoration: none;
+}
+
+.impressum-bereich a:hover {
+    color: var(--text-hell) !important;
+    text-decoration: underline;
+}
+
+.alert { border-radius: 8px; }
+
+@media (max-width: 767px) {
+    h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.55rem; }
+
+    .seiten-logo { width: 150px; }
+    .seiteninhalt { padding-top: 25px; }
+    .card-body { padding: 17px; }
+
+    .gericht-kopf { flex-wrap: nowrap; }
+    .speisekarte .gericht-name { font-size: 1.15rem; }
+    .gericht-preis { font-size: 1rem; }
+
+    .sterne-auswahl { flex-wrap: wrap; }
+    .sterne-auswahl .sterne-ueberschrift { width: 100%; }
+
+    .emoji-picker-popup { max-width: calc(100vw - 20px); }
+
+    .startseiten-infos {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .startseiten-bild { max-height: none; }
+
+    .veranstaltung-eintrag .card-body,
+    #newsletter .card-body { padding: 0; }
+
+    .veranstaltung-eintrag .card-img-bottom { max-height: 300px; }
+
+    .impressum-bereich .info-bereich h2 { font-size: 1.3rem; }
 }
